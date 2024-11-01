@@ -1,0 +1,228 @@
+\documentclass{article}
+
+% if you need to pass options to natbib, use, e.g.:
+%     \PassOptionsToPackage{numbers, compress}{natbib}
+% before loading neurips_2024
+
+
+% ready for submission
+%\usepackage{neurips_2024}
+
+
+% to compile a preprint version, e.g., for submission to arXiv, add add the
+% [preprint] option:
+%     \usepackage[preprint]{neurips_2024}
+
+
+% to compile a camera-ready version, add the [final] option, e.g.:
+     \usepackage[final]{neurips_2024}
+
+
+% to avoid loading the natbib package, add option nonatbib:
+%    \usepackage[nonatbib]{neurips_2024}
+
+
+\usepackage[utf8]{inputenc} % allow utf-8 input
+\usepackage[T1]{fontenc}    % use 8-bit T1 fonts
+\usepackage{hyperref}       % hyperlinks
+\usepackage{url}            % simple URL typesetting
+\usepackage{booktabs}       % professional-quality tables
+\usepackage{amsfonts}       % blackboard math symbols
+\usepackage{nicefrac}       % compact symbols for 1/2, etc.
+\usepackage{microtype}      % microtypography
+\usepackage{xcolor}         % colors
+\usepackage{amsmath}
+
+
+\title{Deep Learning 1 - Homework 1}
+
+
+% The \author macro works with any number of authors. There are two commands
+% used to separate the names and addresses of multiple authors: \And and \AND.
+%
+% Using \And between authors leaves it to LaTeX to determine where to break the
+% lines. Using \AND forces a line break at that point. So, if LaTeX puts 3 of 4
+% authors names on the first line, and the last on the second line, try using
+% \AND instead of \And before the third author name.
+
+
+\author{%
+  Pedro M.P.~Curvo \\
+  MSc Artificial Intelligence\\
+  University of Amsterdam\\
+  \texttt{pedro.pombeiro.curvo@student.uva.nl} \\
+  % examples of more authors
+  % \And
+  % Coauthor \\
+  % Affiliation \\
+  % Address \\
+  % \texttt{email} \\
+  % \AND
+  % Coauthor \\
+  % Affiliation \\
+  % Address \\
+  % \texttt{email} \\
+  % \And
+  % Coauthor \\
+  % Affiliation \\
+  % Address \\
+  % \texttt{email} \\
+  % \And
+  % Coauthor \\
+  % Affiliation \\
+  % Address \\
+  % \texttt{email} \\
+}
+
+
+\begin{document}
+
+
+\maketitle
+
+
+% \begin{abstract}
+%   The abstract paragraph should be indented \nicefrac{1}{2}~inch (3~picas) on
+%   both the left- and right-hand margins. Use 10~point type, with a vertical
+%   spacing (leading) of 11~points.  The word \textbf{Abstract} must be centered,
+%   bold, and in point size 12. Two line spaces precede the abstract. The abstract
+%   must be limited to one paragraph.
+% \end{abstract}
+
+
+\section*{Question 1}
+
+\subsection*{a) b) c)}
+
+The linear model described previously can be written as:
+
+\begin{equation}
+    Y = X W^T + B
+\end{equation}
+
+Where $Y$ is the output, $X$ is the input, $W$ is the weight matrix and $B$ is the bias, with
+$Y \in \mathbb{R}^{S \times N}$, $X \in \mathbb{R}^{S \times M}$, $W \in \mathbb{R}^{N \times M}$ and $B \in \mathbb{R}^{1 \times N}$.
+
+In order to compute $\frac{\partial L}{\partial W}$, we can use the chain rule:
+
+\begin{align*}
+    \frac{\partial L}{\partial W} &= \frac{\partial L}{\partial Y} \frac{\partial Y}{\partial W} \\
+    &= \frac{\partial L}{\partial Y} \frac{\partial (XW^T + B)}{\partial W} \quad \text{(from equation 1)} \\
+    &= \frac{\partial L}{\partial Y} \frac{\partial (XW^T)}{\partial W} \quad \text{(since B does not depend on W)} \\
+    &= \frac{\partial L}{\partial Y}^T X
+\end{align*}
+
+Similarly, to compute $\frac{\partial L}{\partial B}$, we can use the chain rule:
+
+\begin{align*}
+    \frac{\partial L}{\partial B} &= \frac{\partial L}{\partial Y} \frac{\partial Y}{\partial B} \\
+    &= \frac{\partial L}{\partial Y} \frac{\partial (XW^T + B)}{\partial B} \quad \text{(from equation 1)} \\
+    &= \frac{\partial L}{\partial Y} \frac{\partial B}{\partial B} \quad \text{(since B does not depend on W)} \\
+    &= \sum_{i=1}^{S} \frac{\partial L}{\partial Y_i}
+\end{align*}
+
+Finally, to compute $\frac{\partial L}{\partial X}$, we can use the chain rule:
+
+\begin{align*}
+    \frac{\partial L}{\partial X} &= \frac{\partial L}{\partial Y} \frac{\partial Y}{\partial X} \\
+    &= \frac{\partial L}{\partial Y} \frac{\partial (XW^T + B)}{\partial X} \quad \text{(from equation 1)} \\
+    &= \frac{\partial L}{\partial Y} \frac{\partial (XW^T)}{\partial X} \quad \text{(since B does not depend on W)} \\
+    &= \frac{\partial L}{\partial Y} W
+\end{align*}
+
+\subsection*{d)}
+
+Considering the element-wise activation h, given by: 
+
+\begin{align*}
+    Y = h(X) \Rightarrow  Y_{ij} = h(X_{ij})
+\end{align*}
+
+By applying the chain rule, we can compute $\frac{\partial L}{\partial X}$ as follows:
+
+\begin{align*}
+    \frac{\partial L}{\partial X_{ij}} &= \frac{\partial L}{\partial Y_{ij}} \frac{\partial Y_{ij}}{\partial X_{ij}} \\
+    &= \frac{\partial L}{\partial Y_{ij}} \frac{\partial h(X_{ij})}{\partial X_{ij}}
+\end{align*}
+
+Which can have a simple notation of:
+
+\begin{align*}
+    \frac{\partial L}{\partial X_{ij}} = \frac{\partial L}{\partial Y_{ij}} h'(X_{ij})
+\end{align*}
+
+where $h'(X)$ is the derivative of the activation function h with respect to their input. 
+
+Now, this rule is applied to all elements of the matrix X, resulting in the following:
+
+\begin{align*}
+    \frac{\partial L}{\partial X} = \frac{\partial L}{\partial Y} \odot h'(X)
+\end{align*}
+
+where $\odot$ is the Hadamard product and $h'$ is applied element-wise to the matrix X.
+
+As we can see, since we are applying the Hadamard product on a derivative that is also applied element-wise,
+the result will have the same dimensions as the input matrix X. Hence, $\frac{\partial L}{\partial X} \in \mathbb{R}^{S \times M}$.
+
+\subsection*{e)}
+
+As presented, the gradients can be given by: 
+
+\begin{align*}
+    \frac{\partial L}{\partial Z} = Y \odot \left( \frac{\partial L}{\partial Y} - \left( \frac{\partial L}{\partial Y} \odot Y \right) 1 1^T \right) \\
+    \frac{\partial L}{\partial Y} = - \frac{1}{S} \left( \frac{T}{Y} \right)
+\end{align*}
+
+First, we began by replacing the expression for $\frac{\partial L}{\partial Y}$ in the expression for $\frac{\partial L}{\partial Z}$:
+
+\begin{align*}
+    \frac{\partial L}{\partial Z} = Y \odot \left( - \frac{1}{S} \left( \frac{T}{Y} \right) - \left( - \frac{1}{S} \left( \frac{T}{Y} \right) \odot Y \right) 1 1^T \right)
+\end{align*}
+
+Now, since $- \frac{1}{S}$ is a scalar, we can take it out of the Hadamard product:
+
+\begin{align*}
+    \frac{\partial L}{\partial Z} = - \frac{1}{S} Y \odot \left( \frac{T}{Y} - \left( \frac{T}{Y} \odot Y \right) 1 1^T \right)
+\end{align*}
+
+Now, we can use the distributive property of the Hadamard product to simplify the expression:
+
+\begin{align*}
+    \frac{\partial L}{\partial Z} = - \frac{1}{S} \left( Y \odot \frac{T}{Y} - Y \odot \left( \left( \frac{T}{Y} \odot Y \right) 1 1^T \right) \right)
+\end{align*}
+
+Now, since the division is element-wise, we can cancel out the Hadamard product with the division:
+
+\begin{align*}
+    \frac{\partial L}{\partial Z} = - \frac{1}{S} \left( T - Y \odot \left( \left( T \right) 1 1^T \right) \right)
+\end{align*}
+
+Now, we need to look at the matrix product of $T 1 1^T$. $1 1^T$ gives us a matrix of ones, with dimensions $C \times C$.
+Naming the result as $H$, we have that: 
+
+\begin{align*}
+    H_{ij} = \sum_{k=1}^{C} T_{ik} 1 = \sum_{k=1}^{C} T_{ik}
+\end{align*}
+
+But since $T$ is a one-hot encoded matrix, we have that $\sum_{j} T_{ij} = 1$. Hence, $H_{ij} = 1$ for all $i$ and $j$.
+
+Now, we can simplify the expression for $\frac{\partial L}{\partial Z}$:
+
+\begin{align*}
+    \frac{\partial L}{\partial Z} &= - \frac{1}{S} \left( T - Y \odot H \right) \\
+    &= - \frac{1}{S} \left( T - Y \right) \\
+    &= \frac{1}{S} \left( Y - T \right)
+\end{align*}
+
+With that, we can infer that: 
+
+\begin{align*}
+    \alpha = \frac{1}{S} \\
+    M = Y - T
+\end{align*}
+
+Since S is the number of samples, than $\alpha \in \mathbb{R}^{+}$ as we wanted to show.
+
+
+
+\end{document}
