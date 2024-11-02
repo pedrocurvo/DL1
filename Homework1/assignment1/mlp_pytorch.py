@@ -23,6 +23,7 @@ from __future__ import print_function
 
 import torch.nn as nn
 from collections import OrderedDict
+import numpy as np
 
 
 class MLP(nn.Module):
@@ -59,7 +60,24 @@ class MLP(nn.Module):
         #######################
         # PUT YOUR CODE HERE  #
         #######################
-        pass
+        super(MLP, self).__init__()
+        self.layers = []
+        layer_sizes = [n_inputs] + n_hidden + [n_classes]
+        for i in range(len(layer_sizes) - 1):
+            linear_layer = nn.Linear(layer_sizes[i], layer_sizes[i + 1])
+
+            # Kaiming initialization
+            if not self.layers:
+                linear_layer.weight.data.normal_(0, 1/np.sqrt(linear_layer.weight.shape[1]))
+            else:
+                nn.init.kaiming_normal_(linear_layer.weight)
+            nn.init.zeros_(linear_layer.bias)
+            self.layers.append(linear_layer)
+
+            if use_batch_norm:
+                self.layers.append(nn.BatchNorm1d(layer_sizes[i + 1]))
+            self.layers.append(nn.ELU())
+        self.layers = nn.ModuleList(self.layers)
         #######################
         # END OF YOUR CODE    #
         #######################
@@ -81,12 +99,14 @@ class MLP(nn.Module):
         #######################
         # PUT YOUR CODE HERE  #
         #######################
-
+        x = x.view(x.size(0), -1)
+        for layer in self.layers:
+            x = layer(x)
         #######################
         # END OF YOUR CODE    #
         #######################
 
-        return out
+        return x
 
     @property
     def device(self):
