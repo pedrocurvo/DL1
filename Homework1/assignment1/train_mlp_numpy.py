@@ -48,19 +48,11 @@ def accuracy(predictions, targets):
       accuracy: scalar float, the accuracy of predictions between 0 and 1,
                 i.e. the average correct predictions over the whole batch
 
-    TODO:
-    Implement accuracy computation.
     """
 
-    #######################
-    # PUT YOUR CODE HERE  #
-    #######################
     predicted_labels = np.argmax(predictions, axis=1)
     correct_predictions = np.sum(predicted_labels == targets)
     accuracy = correct_predictions / len(targets)
-    #######################
-    # END OF YOUR CODE    #
-    #######################
 
     return accuracy
 
@@ -75,16 +67,10 @@ def evaluate_model(model, data_loader):
     Returns:
       avg_accuracy: scalar float, the average accuracy of the model on the dataset.
 
-    TODO:
-    Implement evaluation of the MLP model on a given dataset.
-
     Hint: make sure to return the average accuracy of the whole dataset,
           independent of batch sizes (not all batches might be the same size).
     """
 
-    #######################
-    # PUT YOUR CODE HERE  #
-    #######################
     all_predictions = []
     all_targets = []
 
@@ -97,9 +83,6 @@ def evaluate_model(model, data_loader):
     all_predictions = np.concatenate(all_predictions, axis=0)
     all_targets = np.concatenate(all_targets, axis=0)
     avg_accuracy = accuracy(all_predictions, all_targets)
-    #######################
-    # END OF YOUR CODE    #
-    #######################
 
     return avg_accuracy
 
@@ -124,7 +107,6 @@ def train(hidden_dims, lr, batch_size, epochs, seed, data_dir):
       logging_dict: An arbitrary object containing logging information. This is for you to
                     decide what to put in here.
 
-    TODO:
     - Implement the training of the MLP model.
     - Evaluate your model on the whole validation set each epoch.
     - After finishing training, evaluate your model that performed best on the validation set,
@@ -155,10 +137,10 @@ def train(hidden_dims, lr, batch_size, epochs, seed, data_dir):
     current_date = now.strftime("%Y_%m_%d_%H_%M_%S")
     writer = SummaryWriter(log_dir=f"runs/mlp_numpy/{current_date}")
 
-    # TODO: Initialize model and loss module
+
     model = MLP(n_inputs=3072, n_hidden=hidden_dims, n_classes=10)
     loss_module = CrossEntropyModule()
-    # TODO: Training loop including validation
+
     val_accuracies = []
     best_model = None
     best_val_accuracy = 0
@@ -183,9 +165,7 @@ def train(hidden_dims, lr, batch_size, epochs, seed, data_dir):
         for x, y in progress_bar:
             # Forward pass
             x = x.reshape(x.shape[0], -1)
-            # one_hot_y = np.zeros((y.size, 10))
-            # one_hot_y[np.arange(y.size), y] = 1
-            # y = one_hot_y
+
             logits = model.forward(x)
             loss = loss_module.forward(logits, y)
             epoch_loss += loss
@@ -206,8 +186,6 @@ def train(hidden_dims, lr, batch_size, epochs, seed, data_dir):
         # Evaluate model on validation set
         val_accuracy = evaluate_model(model, cifar10_loader['validation'])
         val_accuracies.append(val_accuracy)
-
-        # print(f'Epoch {epoch+1}/{epochs} - Loss: {epoch_loss / len(cifar10_loader)} - Validation accuracy: {val_accuracy:.4f}')
 
         # Save best model
         if val_accuracy > best_val_accuracy:

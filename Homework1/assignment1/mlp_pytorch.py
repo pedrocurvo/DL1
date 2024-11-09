@@ -48,18 +48,11 @@ class MLP(nn.Module):
                      output dimensions of the MLP
           use_batch_norm: If True, add a Batch-Normalization layer in between
                           each Linear and ELU layer.
-
-        TODO:
-        Implement module setup of the network.
         The linear layer have to initialized according to the Kaiming initialization.
         Add the Batch-Normalization _only_ is use_batch_norm is True.
 
         Hint: No softmax layer is needed here. Look at the CrossEntropyLoss module for loss calculation.
         """
-
-        #######################
-        # PUT YOUR CODE HERE  #
-        #######################
         super(MLP, self).__init__()
         self.layers = []
         layer_sizes = [n_inputs] + n_hidden + [n_classes]
@@ -68,19 +61,21 @@ class MLP(nn.Module):
 
             # Kaiming initialization
             if not self.layers:
-                linear_layer.weight.data.normal_(0, 1/np.sqrt(linear_layer.weight.shape[1]))
+                linear_layer.weight.data.normal_(0, 1/np.sqrt(linear_layer.weight.shape[1])) # Just because I'm not sure if nn.init works for the first layer
             else:
                 nn.init.kaiming_normal_(linear_layer.weight)
             nn.init.zeros_(linear_layer.bias)
+
             self.layers.append(linear_layer)
 
+            # Batch normalization
             if use_batch_norm:
                 self.layers.append(nn.BatchNorm1d(layer_sizes[i + 1]))
+            
+            # ELU
             self.layers.append(nn.ELU())
+        
         self.layers = nn.ModuleList(self.layers)
-        #######################
-        # END OF YOUR CODE    #
-        #######################
 
     def forward(self, x):
         """
@@ -91,20 +86,10 @@ class MLP(nn.Module):
           x: input to the network
         Returns:
           out: outputs of the network
-
-        TODO:
-        Implement forward pass of the network.
         """
-
-        #######################
-        # PUT YOUR CODE HERE  #
-        #######################
-        x = x.view(x.size(0), -1)
+        x = x.view(x.size(0), -1) # Flatten the input because the input is an image
         for layer in self.layers:
             x = layer(x)
-        #######################
-        # END OF YOUR CODE    #
-        #######################
 
         return x
 

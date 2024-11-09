@@ -52,8 +52,6 @@ def accuracy(predictions, targets):
       accuracy: scalar float, the accuracy of predictions,
                 i.e. the average correct predictions over the whole batch
 
-    TODO:
-    Implement accuracy computation.
     """
 
     #######################
@@ -68,7 +66,7 @@ def accuracy(predictions, targets):
     return correct_predictions
 
 
-def evaluate_model(model, data_loader):
+def evaluate_model(model, data_loader, device):
     """
     Performs the evaluation of the MLP model on a given dataset.
 
@@ -78,22 +76,40 @@ def evaluate_model(model, data_loader):
     Returns:
       avg_accuracy: scalar float, the average accuracy of the model on the dataset.
 
-    TODO:
+    
     Implement evaluation of the MLP model on a given dataset.
 
     Hint: make sure to return the average accuracy of the whole dataset,
           independent of batch sizes (not all batches might be the same size).
     """
+    test_acc = 0
 
-    #######################
-    # PUT YOUR CODE HERE  #
-    #######################
+    progress_bar = tqdm(
+        enumerate(data_loader),
+        desc="Testing",
+        total=len(data_loader),
+        leave=False,
+        disable=False,
+        colour="yellow"
+    )
 
-    #######################
-    # END OF YOUR CODE    #
-    #######################
+    with torch.no_grad():
+        for batch, (X, y) in progress_bar:
+            # Send data to target device
+            X, y = X.to(device), y.to(device)
 
-    return avg_accuracy
+            # Forward pass
+            y_pred = model(X)
+
+            # Compute accuracy
+            test_acc += accuracy(y_pred, y)
+
+            progress_bar.set_postfix(test_acc=test_acc / (batch + 1))
+            progress_bar.update()
+    
+    test_acc /= len(data_loader)
+
+    return test_acc
 
 
 def train(hidden_dims, lr, use_batch_norm, batch_size, epochs, seed, data_dir):
@@ -155,29 +171,12 @@ def train(hidden_dims, lr, use_batch_norm, batch_size, epochs, seed, data_dir):
     current_date = now.strftime("%Y_%m_%d_%H_%M_%S")
     writer = SummaryWriter(log_dir=f"runs/mlp_pytorch/{current_date}")
 
-    # TODO: Initialize model and loss module
     model = MLP(n_inputs=32*32*3,
                 n_hidden=hidden_dims,
                 n_classes=10,
                 use_batch_norm=use_batch_norm).to(device)
-    
-    # Experimental: Compile the model
-    # model = torch.compile(model)
-    
-    # # Kaiming initialization
-    # for name, param in model.named_parameters():
-    #     print(name)
-    #     if "bias" in name:
-    #         torch.nn.init.zeros_(param)
-    #     elif name.startswith("layers.0"):
-    #         param.data.normal_(0, 1/np.sqrt(param.shape[1]))
-    #     else:
-    #         torch.nn.init.kaiming_normal_(param)
-            
         
     loss_module = nn.CrossEntropyLoss()
-    # TODO: Training loop including validation
-    # TODO: Do optimization with the simple SGD optimizer
 
     optimizer = optim.SGD(model.parameters(),
                           lr=lr)
@@ -330,20 +329,12 @@ def train(hidden_dims, lr, use_batch_norm, batch_size, epochs, seed, data_dir):
     writer.flush()
     writer.close()
 
-
-
-
-
-    # val_accuracies = ...
-    # # TODO: Test best model
-    # test_accuracy = ...
-    # # TODO: Add any information you might want to save for plotting
-    # logging_dict = ...
     #######################
     # END OF YOUR CODE    #
     #######################
+    # I don't return the val_accuracies, test_accuracy, logging_dict because they are kept in the tensorboard writer
 
-    return model, #val_accuracies, test_accuracy, logging_dict
+    return model, # val_accuracies, test_accuracy, logging_dict
 
 
 if __name__ == '__main__':
@@ -374,4 +365,3 @@ if __name__ == '__main__':
     kwargs = vars(args)
 
     train(**kwargs)
-    # Feel free to add any additional functions, such as plotting of the loss curve here

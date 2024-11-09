@@ -31,11 +31,11 @@ import os
 
 def get_dataloader(dataset, batch_size, return_numpy=False):
     collate_fn = numpy_collate_fn if return_numpy else None
-    train_dataloader      = DataLoader(dataset=dataset["train"], batch_size=batch_size, shuffle=True, drop_last=True, num_workers=os.cpu_count(), multiprocessing_context='fork',
+    train_dataloader      = DataLoader(dataset=dataset["train"], batch_size=batch_size, shuffle=True, drop_last=True, num_workers=os.cpu_count() - 1, multiprocessing_context='fork',
                                        collate_fn=collate_fn)
-    validation_dataloader = DataLoader(dataset=dataset["validation"], batch_size=batch_size, shuffle=False, drop_last=False, num_workers=os.cpu_count(), multiprocessing_context='fork',
+    validation_dataloader = DataLoader(dataset=dataset["validation"], batch_size=batch_size, shuffle=False, drop_last=False, num_workers=os.cpu_count() - 1, multiprocessing_context='fork',
                                        collate_fn=collate_fn)
-    test_dataloader       = DataLoader(dataset=dataset["test"], batch_size=batch_size, shuffle=False, drop_last=False, num_workers=os.cpu_count(), multiprocessing_context='fork',
+    test_dataloader       = DataLoader(dataset=dataset["test"], batch_size=batch_size, shuffle=False, drop_last=False, num_workers=os.cpu_count() - 1, multiprocessing_context='fork',
                                        collate_fn=collate_fn)
     return {"train": train_dataloader, "validation": validation_dataloader, "test": test_dataloader}
 

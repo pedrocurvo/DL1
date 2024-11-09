@@ -44,14 +44,7 @@ class MLP(object):
           n_classes: number of classes of the classification problem.
                      This number is required in order to specify the
                      output dimensions of the MLP
-
-        TODO:
-        Implement initialization of the network.
         """
-
-        #######################
-        # PUT YOUR CODE HERE  #
-        #######################
         self.layers = []
 
         # Initialize the first layer
@@ -68,10 +61,6 @@ class MLP(object):
         self.layers.append(LinearModule(n_hidden[-1] if n_hidden else n_inputs, n_classes))
         self.layers.append(SoftMaxModule())
 
-        #######################
-        # END OF YOUR CODE    #
-        #######################
-
     def forward(self, x):
         """
         Performs forward pass of the input. Here an input tensor x is transformed through
@@ -81,20 +70,10 @@ class MLP(object):
           x: input to the network
         Returns:
           out: outputs of the network
-
-        TODO:
-        Implement forward pass of the network.
         """
-
-        #######################
-        # PUT YOUR CODE HERE  #
-        #######################
         for layer in self.layers:
             x = layer.forward(x)
         out = x
-        #######################
-        # END OF YOUR CODE    #
-        #######################
 
         return out
 
@@ -104,34 +83,14 @@ class MLP(object):
 
         Args:
           dout: gradients of the loss
-
-        TODO:
-        Implement backward pass of the network.
         """
-
-        #######################
-        # PUT YOUR CODE HERE  #
-        #######################
         for layer in reversed(self.layers):
             dout = layer.backward(dout)
-        #######################
-        # END OF YOUR CODE    #
-        #######################
 
     def clear_cache(self):
         """
         Remove any saved tensors for the backward pass from any module.
         Used to clean-up model from any remaining input data when we want to save it.
-
-        TODO:
-        Iterate over modules and call the 'clear_cache' function.
         """
-
-        #######################
-        # PUT YOUR CODE HERE  #
-        #######################
         for layer in self.layers:
             layer.clear_cache()
-        #######################
-        # END OF YOUR CODE    #
-        #######################
