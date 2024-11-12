@@ -159,7 +159,8 @@ Now, it is noted in the question that $B_{ij} = b_j$ for all $i$. Hence:
 \end{align*}
 
 This because the bias $B$ has a row-vector structure, with the same bias for all samples in the batch. And, indeed,
-we get a row vector as the gradient of the bias if we choose any row $i$ of the gradient of $B$.
+we get a row vector as the gradient of the bias if we choose any row $i$ of the gradient of $B$, which is the same as
+a row of the gradient of $Y$.
 
 % \begin{align*}
 %     \frac{\partial L}{\partial B} &= \frac{\partial L}{\partial Y} \frac{\partial Y}{\partial B} \\
@@ -339,7 +340,7 @@ Since S is the number of samples, then $\alpha \in \mathbb{R}^{+}$ as we wanted 
 To show that the eigenvalues for the Hessian matrix in a strictly local minimum are all positive, 
 we need to began by showing that the Hessian matrix is positive-definite at that point.
 
-Let $f: \mathbb{R}^n \rightarrow \mathbb{R}$ be a function that is twice differentiable at a point $x^*$, hence
+Let $f: \mathbb{R}^n \rightarrow \mathbb{R}$ be a function that is twice differentiable in an open neighborhood at a point $x^*$, hence
 $f \in C^2$. Assuming that $x^*$ is a local minimum, we have that $\nabla f(x^*) = 0$, since if $x^*$ is a local extremum,
 the gradient must be zero.
 
@@ -353,7 +354,7 @@ If we know expand the Taylor series of $f$ around $x^*$, we have that:
 Because $x^*$ is a strictly local minimum, we have that, by definition:
 
 \begin{align*}
-    0 &< \lim_{\lambda \rightarrow 0} \frac{f(x^* + \lambda d) - f(x^*)}{\lambda^2} \\
+    0 &< \lim_{\lambda \rightarrow 0} \frac{f(x^* + \lambda d) - f(x^*)}{\lambda^2} \quad \text{because for a strictly local minimum, $f(x) > f(x^*)$ for all $x$ in the neighborhood of $x^*$} \\
     &= \lim_{\lambda \rightarrow 0} \frac{f(x^*) + \frac{1}{2} \lambda^2 d^T H_f(x^*) d + o(\lambda^2 d^T d) - f(x^*)}{\lambda^2} \\
     &= \frac{1}{2} d^T H_f(x^*) d
 \end{align*}
@@ -366,7 +367,11 @@ Now, by the definition of positive-definite matrix:
     d^T H_f(x^*) d > 0 \quad \text{for all $d \neq 0$}
 \end{align*}
 
-Hence, the Hessian matrix at a strictly local minimum is positive-definite, by the properties above. 
+Hence, if the Hessian matrix is positive-definite at a point $x^*$, then $x^*$ is a strictly local minimum,
+by the definitions above. Notice, however, that is not true the other way around, since a strictly local minimum
+can have a positive semi-definite Hessian matrix. Having a positive definite Hessian matrix is a sufficient condition
+for a strictly local minimum, but not a necessary condition. I'm going to assume from now on that the question
+was asking that if we have a Hessian positive definite in a point $x^*$, then $x^*$ is a strictly local minimum.
 
 Now, to proof the statement, we need to show that all the eigenvalues of a positive-definite matrix are positive.
 
@@ -389,7 +394,9 @@ Now, if we assume that there is one eigenvalue $\lambda$ that is zero, then for 
 Which also contradicts the definition of positive-definite matrix.
 
 Hence, all the eigenvalues of a positive-definite matrix are positive. We can than conclude, that
-for a strictly local minimum, the Hessian matrix is positive-definite and all its eigenvalues are positive.
+if we have a Hessian matrix that is positive-definite at a point $x^*$, then $x^*$ is a strictly local minimum.
+To proof the necessary condition, then H is positive-definite at $x^*$ and we only need to do the first step of the proof
+above. 
 
 \subsection*{b)}
 
@@ -413,11 +420,13 @@ A saddle points $p$ has the property of having its gradient equal to zero, $\nab
 Now, by taking the formula of gradient descent, we have that:
 
 \begin{align*}
-    x^{\tau+1} = x^{\tau} - \eta  \nabla f(x^\tau)
+    p^{\tau+1} = p^{\tau} - \eta  \nabla f(p^\tau)
 \end{align*}
 
 Since, $\nabla f(p) = 0$, we have that $p^{\tau+1} = p^{\tau}$. Hence, the algorithm will not move from the saddle point.
 This is a problem, since the algorithm will be stuck at the saddle point and will not be able to converge to a minima.
+Besides that, for points close to the saddle point, the gradient will be small, making it hard for the algorithm to escape
+that locality, since $p^{\tau+1} \approx p^{\tau}$.
 
 
 \newpage
