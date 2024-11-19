@@ -39,6 +39,7 @@
 \usepackage{array}
 \usepackage{multirow}
 \usepackage{graphicx}
+\usepackage{subcaption}
 
 
 
@@ -280,7 +281,7 @@ is achieving 100\% accuracy in the validation set, while getting 0\% accuracy in
 
 CNNs are not naturally rotationally invariant because the filters they learn during training are sensitive to the orientation
 of features in the images. When an image is rotated, the learned filters may no longer align with the features in the new
-orientation. This misalignment reduces the model’s ability to recognize patterns, leading to a drop in accuracy. The
+orientation. This misalignment reduces the model's ability to recognize patterns, leading to a drop in accuracy. The
 convolutional layers detect local patterns such as edges and textures in a fixed direction, and rotating the image changes
 the spatial relationships between these features, making it harder for the network to match them correctly.
 
@@ -317,6 +318,97 @@ of rotational sensitivity found in networks trained only on images with fixed or
 
 \section*{Part 2}
 
+\subsection*{Question 2.1}
+
+\subsubsection*{a)}
+
+\begin{itemize}
+    \item Long input sequences can be challenging for Transformers due to the quadratic complexity of the self-attention mechanism, 
+    that is, in self-attention, each token attends to every other token in the sequence, hence we have a  
+    $O(n^2)$ complexity that can be seen by multiplying the $Q$, $K$ and $V$ matrices. This can lead to both memory
+    and computational issues, which are worse when $n$ is large (larger sentences).
+
+    \item One way to solve this problem is by using some kind of sparse attention mechanism that focus on a subset
+of local or key tokens. With this we can reduce the complexity of the self-attention mechanism. For example,
+the Reformer model~ %\cite{Kitaev2020}%
+ uses locality-sensitive hashing to achieve a $O(n \log n)$ complexity.
+\end{itemize}
+
+\subsubsection*{b)}
+
+CNNs have a local receptive field that allows them to capture local patterns in the input data and which is done
+by the convolution operation between the input and a kernel filter. One the other hand, Transformers have a global
+receptive field that allows them to capture long-range dependencies in the input data, which is done by the self-attention
+mechanism, since it allows each token to attend to every other token in the sequence.
+
+\subsubsection*{c)}
+
+The scaling factor $\frac{1}{\sqrt{d_k}}$ is used to stabilize the gradients during training. The dot product of the
+$Q$ and $K$ matrices is scaled by $\frac{1}{\sqrt{d_k}}$ to prevent the dot products from becoming too large when the
+dimensionality of the keys $d_k$ is high. If it were the case that some values were too large, the softmax function would
+produce gradients that are too small, leading to slower learning or vanishing gradients which would harm the gradient descent process.
+
+\subsubsection*{d)}
+
+If we assume we have the same total computation cost then the multiple attentions heads are beneficial because they allow
+to capture different types of dependencies and patterns simultaneously. Each attention head can focus on different parts of the
+input sequence, like in CNNs we have several filters. It can also help mitigate some bias that can originate in some
+heads due to the dominance of some tokens and can help improve generalization because, by learning multiple sets of
+attention parameters, the model can be more robust to different tasks.
+
+
+\subsection*{Question 2.2}
+
+\textcolor{blue}{CODE}
+
+\subsection*{Question 2.3}
+
+\subsubsection*{a to b)}
+\textcolor{blue}{CODE}
+
+\subsubsection*{c)}
+
+The MLP head is wide and not deep for several factors.
+In one hand, we want to keep independence of tokens in the MLP, meaning we don't need a deep network to capture
+the dependencies between the tokens. With a wide network, we are basically representing each token in a higher-dimensional
+space, which can help to capture more complex patterns independently. If we employed a deep network, we would be
+capturing dependencies between tokens, which is not necessary in this case, since the self-attention mechanism already
+does it.
+In the other hand, with a wide network we can apply a parallel computation, that is, splitting the model across multiple
+GPUs, which can lead to more computational efficiency. By keeping the MLP shallow, we also reduce the probability of overfitting
+and can keep a more stable training process.
+
+
+\subsection*{Question 2.4}
+
+\subsubsection*{a)}
+
+If we do not use a positional embedding, the Transformer model will not be able to distinguish the order of the tokens in the
+input sequence. This is because the self-attention mechanism treats all tokens as independent, and without positional information,
+meaning is permutation invariant. For example, without positional embeddings, the model would treat the sentences "The dog bit the man"
+and "The man bit the dog" as the same, which is not the desired behavior. We need to have a positional embedding
+for a sequential structure, specially for tasks like syntax, etc... which are characteristics of LLMs.
+
+\subsubsection*{b)}
+
+By using absolute position embeddings, that is, by assigning, for example, 1 to the first token, 2 to the second token, and so on,
+we are restricting the model to work within the predefined sequence length. This can be problematic if we then want to apply the model
+to sequences that are longer than the ones seen during training. Besides that, we can have, for example, different types of inputs, 
+where lengths can vary, for example, documents, translation tasks, etc... In these cases, the model would not be able to generalize.
+Adding to this, we also want the model to have a sense of proximity between tokens, which is not achieved by absolute position embeddings.
+For example, we might want the model to understand that the tokes "The" and "dog" appear closer than "man" and "dog".
+
+By using relative position embeddings, we can overcome these limitations. Relative position embeddings allow the model to learn
+the relative distances between tokens, which can be more useful in tasks where the absolute position of tokens is not as important.
+Adding to this, the model can then extrapolate to different new sequences lengths and can even retain the context in large
+sequences, for example, in resuming tasks, where we have large documents.
+
+
+\subsection*{Question 2.5}
+
+\textcolor{blue}{CODE}
+
+\subsection*{Question 2.6}
 
 
 
@@ -334,6 +426,9 @@ of rotational sensitivity found in networks trained only on images with fixed or
 
 
 
+
+
+\newpage
 \bibliographystyle{abbrvnat}
 \bibliography{references} 
 

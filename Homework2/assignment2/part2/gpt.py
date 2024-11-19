@@ -42,6 +42,9 @@ class RMSNorm(nn.Module):
     def forward(self, x):
         # Compute the norm of the input tensor and divide by the norm
         # Scale the normalized tensor by the learned weight parameter
+        # Root Mean Square (RMS) normalization
+        rmw = torch.sqrt(torch.mean(x ** 2, dim=-1, keepdim=True) + self.eps)
+        output =  x / rmw * self.weight
         return output
 
 class CausalSelfAttention(nn.Module):
@@ -127,30 +130,37 @@ class CausalSelfAttention(nn.Module):
         
     def forward(self, x):
         B, T, C = x.size() # batch size, sequence length, embedding dimensionality (n_embd)
+        head_dim = self.n_embd // self.n_head
 
         # calculate query, key, values for all heads in batch and move head forward to be the batch dim
         # Split output of attention-head in query, key and value
-        q, k ,v  = ...
+        q, k ,v  = self.c_attn(x).split(self.n_embd, dim=2) # (B, T, C) -> 3 x (B, T, C/n_head)
 
-        q = ...
-        k = ...
-        v = ...
+        q = q.view(B, T, self.n_head, head_dim).transpose(1, 2) # (B, T, C) -> (B, nh, T, hs)
+        k = k.view(B, T, self.n_head, head_dim).transpose(1, 2) # (B, T, C) -> (B, nh, T, hs)
+        v = v.view(B, T, self.n_head, head_dim).transpose(1, 2) # (B, T, C) -> (B, nh, T, hs)
 
         if not self.config.abs_emb:
             q, k = self.apply_rotary_emb(q, k, T)
 
         # causal self-attention; Self-attend: (B, nh, T, hs) x (B, nh, hs, T) -> (B, nh, T, T)
-        # Calculate attention weights using key and queries, moreover, apply dropout to the weigths
+        # Calculate attention weights using key and queries, moreover, apply dropout to the weights
         # Mask the calculated attention weights with the mask parameter.
 
         if self.use_flash_attn:
             y = ...
         else:
             # Compute attention scores
-            att = ... 
+            att = (q @ k.transpose(-2, -1)) / math.sqrt(head_dim) # (B, nh, T, hs) x (B, nh, hs, T) -> (B, nh, T, T) / sqrt(hs)
             # Apply causal mask
+            # Inf below diagonal because then exp(-inf) = 0 so we get 0 in the softmax, meaning that the token can't attend to the future
+            att = att.masked_fill(self.mask[:, :, :T, :T] == 0, float('-inf'))
+            att = F.softmax(att, dim=-1) # (B, nh, T, T) -> (B, nh, T, T)
+            att = self.attn_dropout(att) # Dropout after the softmax
             # Apply attention to the values
-            y = ... # (B, nh, T, T) x (B, nh, T, hs) -> (B, nh, T, hs)
+            y = att @ v # (B, nh, T, T) x (B, nh, T, hs) -> (B, nh, T, hs)
+
+        # combine heads
         y = y.transpose(1, 2).contiguous().view(B, T, C) # re-assemble all head outputs side by side
 
         # output projection
@@ -182,11 +192,27 @@ class TransformerDecoderBlock(nn.Module):
     """
     def __init__(self, config):
         super().__init__()
-        # Initialize the layers
-        raise NotImplementedError
+        self.layer_norm_1 = RMSNorm(config.n_embd)
+        self.self_attention = CausalSelfAttention(config)
+        self.layer_norm_2 = RMSNorm(config.n_embd)
+        self.mlpf = nn.Sequential(
+            nn.Linear(config.n_embd, 4 * config.n_embd),
+            BERTGELU(),
+            nn.Linear(4 * config.n_embd, config.n_embd),
+            nn.Dropout(config.resid_pdrop)
+        )
+
     def forward(self, x):
         # Forward pass through the Decoder Layer
-        out = ...
+        # Layer Norm + Self Attention
+        attn_out = self.self_attention(self.layer_norm_1(x))
+        # Residual connection
+        x = x + attn_out
+        # Layer Norm + MLP
+        mlp_out = self.mlpf(self.layer_norm_2(x))
+        # Residual connection
+        x = x + mlp_out
+        out = x
         return out
 
 
@@ -391,7 +417,8 @@ class GPT(nn.Module):
         # Forward token and position embedders
         # token embeddings of shape (b, t, n_embd)
         # apply dropout to the tokens
-        tok_emb = ...
+        tok_emb = self.transformer.w_token_emb(idx)
+        tok_emb = self.transformer.drop(tok_emb)
 
         if self.config.abs_emb:
             pos = torch.arange(0, t, dtype=torch.long, device=device).unsqueeze(0) # shape (1, t)
@@ -402,7 +429,10 @@ class GPT(nn.Module):
 
         # Iterate through the transformer blocks
         # Apply final layer normalization and linear layer to produce logits
-        logits = ...
+        for block in self.transformer.h:
+            x = block(x)
+        x = self.transformer.ln_f(x)
+        logits = self.lm_head(x)
 
         return logits
 
