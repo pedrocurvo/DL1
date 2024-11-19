@@ -114,6 +114,7 @@ class CausalSelfAttention(nn.Module):
         # Generate RoPE embeddings dynamically based on T
         batch, num_heads, seq_len, head_dim = xq.shape
         device = xq.device
+        self.inv_freq = self.inv_freq.to(xq.device)
 
         seq_pos = torch.arange(T, device=device, dtype=self.inv_freq.dtype) # Shape: (T,)
         freqs = torch.outer(seq_pos, self.inv_freq) # Shape: (T, dim // 2)
@@ -483,10 +484,11 @@ class GPT(nn.Module):
 
             # forward the model to get the logits for the index in the sequence
             # pluck the logits at the final step and scale by desired temperature
+            logits = self.forward(idx_cond)[:, -1, :] / temperature
 
             if not do_sample:
                 # take the most likely token
-                idx_next = ...
+                idx_next = torch.argmax(logits, dim=-1, keepdim=True)
             
             else:
                 # apply softmax to convert logits to (normalized) probabilities
