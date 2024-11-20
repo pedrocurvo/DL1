@@ -488,20 +488,34 @@ class GPT(nn.Module):
 
             if not do_sample:
                 # take the most likely token
+                # This is the greedy decoding approach
                 idx_next = torch.argmax(logits, dim=-1, keepdim=True)
             
             else:
                 # apply softmax to convert logits to (normalized) probabilities
-
+                probs = torch.argmax(logits, dim=-1, keepdim=True)
                 # optionally only consider top-k logits for sampling. 
                 if top_k is not None:
-                    pass
+                    top_k_values, top_k_indices = torch.topk(logits, k=top_k, dim=-1)
+                    probs = torch.zeros_like(probs).scatter_(-1, top_k_indices, top_k_values)
+                    probs /= probs.sum(dim=-1, keepdim=True)
 
                 # optionally apply top-p sampling
                 if top_p is not None:
-                    pass
+                    sorted_probs, sorted_indices = torch.sort(probs, descending=True, dim=-1)
+                    cumulative_probs = torch.cumsum(sorted_probs, dim=-1)
+
+                    # Mask tokens exceeding top-p cumulative probability
+                    sorted_probs[cumulative_probs > top_p] = 0
+                    sorted_probs /= sorted_probs.sum(dim=-1, keepdim=True)
+
+                    # Scatter back to original order
+                    probs = torch.zeros_like(probs).scatter_(-1, sorted_indices, sorted_probs)
+
+                # Sample from the probability distribution
+                idx_next = torch.multinomial(probs, num_samples=1)
             
             # append sampled index to the running sequence and continue
-            idx = ...
+            idx = torch.cat((idx, idx_next), dim=1)
 
         return idx
