@@ -471,7 +471,7 @@ sequences, for example, in resuming tasks, where we have large documents.
 
 \textcolor{red}{TODO: just need to put some prompts here}
 
-\subsection*{Question 2.8}
+\subsection*{Question 2.9}
 
 \subsubsection*{a)}
 
@@ -479,6 +479,95 @@ sequences, for example, in resuming tasks, where we have large documents.
 \textcolor{red}{TODO: REVISE}
 
 \subsubsection*{b)}
+
+\newpage
+
+\section*{Part 3}
+
+\subsection*{Question 3.1}
+
+\subsubsection*{a)}
+
+For the first graph we have:
+
+$[
+[0, 1, 1, 0, 1],
+[1, 0, 1, 0, 0],
+[1, 1, 0, 1, 0],
+[0, 0, 1, 0, 0],
+[1, 0, 0, 0, 0]]$
+
+For the second graph we have:
+
+$[
+[0, 1, 0, 0, 0, 0],
+[1, 0, 1, 0, 1, 0],
+[0, 0, 1, 0, 1, 0],
+[0, 0, 1, 0, 1, 1],
+[0, 1, 0, 1, 0, 1], 
+[0, 0, 0, 1, 1, 0]]$
+
+\subsubsection*{b)}
+
+By squaring the first adjacency matrix we have:
+
+$[
+[3, 1, 1, 1, 0],
+[1, 2, 1, 1, 1],
+[1, 1, 3, 0, 1],
+[1, 1, 0, 1, 0],
+[0, 1, 1, 0, 1]]$
+
+When we square the matrix $A \rightarrow A^2$, we are counting the number of paths of length 2 between each pair of nodes,
+that is, $A_{ij}^2$ is the number of paths of length 2 between nodes $i$ and $j$.
+For example the entry $A_{12}^2 = 1$ means that there is 1 path of length 2 between nodes 1 and 2, which is the path
+$1 \rightarrow 3 \rightarrow 2$.
+
+More generally, the entry $A_{uv}^n$ is the sum of the number of paths of length $n$ between nodes $u$ and $v$ in the graph.
+
+\textbf{Note:} In the diagonals we have the number of paths of length 2 that start and end in the same node, for example,
+if node $1$ and $5$ are connected this represents also a path of length 2, because we can go from node $1$ to node $5$ and
+then back to node $1$. This is only true in the case of undirected graphs.
+
+\subsubsection*{c)}
+
+The Laplacian matrix is defined as $L = D - A$, where $D$ is the degree matrix and $A$ is the adjacency matrix.
+The degree matrix is a diagonal matrix where the diagonal entries are the sum of the weights of the edges connected to each node.
+
+For the second graph we have that $D$ is:
+
+$[
+[1, 0, 0, 0, 0, 0],
+[0, 3, 0, 0, 0, 0],
+[0, 0, 2, 0, 0, 0],
+[0, 0, 0, 3, 0, 0],
+[0, 0, 0, 0, 3, 0],
+[0, 0, 0, 0, 0, 2]]$
+
+And the Laplacian matrix is:
+
+$[
+[1, -1,  0, 0, 0, 0],
+[-1, 3, -1, 0, -1, 0],
+[0, -1,  2, 0, -1, 0],
+[0, 0,  -1, 3, -1, -1],
+[0, -1,  0, -1, 3, -1],
+[0, 0,   0, -1, -1, 2]]$
+
+By applying the Laplacian matrix to an input matrix $X$, we have that $F = L \cdot X$. 
+If we consider the way matrix multiplication works, we see that $F$ is the result of the span of the row space of $X$ by the columns of $L$.
+The columns of $L$ have larger value if $D$ is larger, that is, if the node is more connected to other nodes, which means that
+if a node has high degree, it will be more influenced by its neighbors because the corresponding row in $L$ will have larger values.
+We can conclude, in this case, that the nodes that change the most are nodes $2$, $4$ and $5$, since they have higher degree $(3)$.
+
+\textcolor{red}{NEEDS REVISION}
+
+
+
+
+
+
+
 
 
 
