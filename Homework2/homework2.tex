@@ -274,7 +274,7 @@ is achieving 100\% accuracy in the validation set, while getting 0\% accuracy in
 % Include image the plot of inference respect to angle of rotation 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.8\textwidth]{rot_angles.png}
+    \includegraphics[width=0.8\textwidth]{images/rot_angles.png}
     \caption{Inference respect to angle of rotation}
     \label{fig:angle_inference}
 \end{figure}
@@ -297,7 +297,7 @@ recognize rotated images.
 % Include image the plot of inference respect to angle of rotation
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.8\textwidth]{rot_angles_aug.png}
+    \includegraphics[width=0.8\textwidth]{images/rot_angles_aug.png}
     \caption{Inference respect to angle of rotation with data augmentation}
     \label{fig:angle_inference_aug}
 \end{figure}
@@ -409,6 +409,56 @@ sequences, for example, in resuming tasks, where we have large documents.
 \textcolor{blue}{CODE}
 
 \subsection*{Question 2.6}
+
+\textcolor{blue}{CODE}
+
+\subsection*{Question 2.7}
+
+% Insert image with epochs
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{images/epoch.pdf}
+    \caption{Epochs per Step}
+    \label{fig:loss_epochs}
+\end{figure}
+
+% Insert image with Train Acc Epoch 
+
+\begin{figure}[H]
+    \centering
+    \begin{subfigure}{0.48\textwidth}  % Adjust the width to your preference
+        \centering
+        \includegraphics[width=\textwidth]{images/train_acc_epoch.pdf}
+        \caption{Train Accuracy per Epoch}
+        \label{fig:train_acc_epochs}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}{0.48\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{images/train_acc_step.pdf}
+        \caption{Train Accuracy per Step}
+        \label{fig:train_acc_steps}
+    \end{subfigure}
+\end{figure}
+
+% Insert image with Train Loss per Epoch
+
+\begin{figure}[H]
+    \centering
+    \begin{subfigure}{0.48\textwidth}  % Adjust the width to your preference
+        \centering
+        \includegraphics[width=\textwidth]{images/train_loss_epoch.pdf}
+        \caption{Train Loss per Epoch}
+        \label{fig:train_loss_epochs}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}{0.48\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{images/train_loss_step.pdf}
+        \caption{Train Loss per Step}
+        \label{fig:train_loss_steps}
+    \end{subfigure}
+\end{figure}
 
 
 
