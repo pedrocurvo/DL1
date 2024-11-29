@@ -34,6 +34,7 @@ def generate(
     temperature: float = 1.0,
     device: str = "cpu",
     verbose: bool = True,
+    tokenizer: CharTokenizer = None
 ):
     """Generates text samples using a trained GPT model. This function takes a trained model and generates a specified number
     of text samples based on a given prompt. It allows for customization of the generation process through various parameters like the number
@@ -58,20 +59,17 @@ def generate(
     """
     dix = model.dataset.tokenizer.encode(prompt)
     # return as tensors
-    x = torch.tensor(dix, dtype=torch.long).to(device).unsqueeze(0)
-    
+    x = torch.tensor(dix, dtype=torch.long).to(device).unsqueeze(0)    
     
     # we'll process all desired num_samples in a batch, so expand out the batch dim
     x = x.expand(num_samples, -1)
 
     # forward the model `steps` times to get samples, in a batch
     y = model.model.generate(x, max_new_tokens=n_steps, do_sample=do_sample, top_k=top_k, top_p=top_p, temperature=temperature)
-    
     # Decode the predicted outputs 
     decoded_outputs = []
     for i in range(num_samples):
-        #out = tokenizer.decode(y[i].cpu().squeeze())
-        #print(y)
+        out = tokenizer.decode(y[i].cpu().squeeze())
         out = ''.join([model.dataset.tokenizer.decode([int(k)]) for k in y[i].cpu().squeeze()])
         decoded_outputs.append(out)
         if verbose:
@@ -84,10 +82,10 @@ if __name__ == "__main__":
 
     args = get_config()
     parser = argparse.ArgumentParser()
-    parser.add_argument('--model_weights_folder', type=str, default='./logs/gpt-mini/version_0/checkpoints')
+    parser.add_argument('--model_weights_folder', type=str, default='./logs/gpt-mini/version_10/checkpoints')
     parser.add_argument('--num_samples', type=int, default=10)
     parser.add_argument('--num_generated_tokens', type=int, default=77)
-    parser.add_argument('--do_sample', type=bool, default=True)
+    parser.add_argument('--do_sample', action='store_true')
     parser.add_argument('--temperature', type=float, default=1.0)
     parser.add_argument('--prompt', type=str, default='Yesterday I went to the ')
     gen_args = parser.parse_args()
@@ -98,7 +96,7 @@ if __name__ == "__main__":
 
     # Load model weights    
     model_weights_path = os.path.join(args.model_weights_folder, sorted(os.listdir(args.model_weights_folder))[-1])
-    state_dict = torch.load(model_weights_path)
+    state_dict = torch.load(model_weights_path, map_location=torch.device('cpu'), weights_only=True) # Remove TODO
 
     # Clean up state dict keys by removing '_orig_mod' prefix if present due to torch.compile()
     if state_dict['hyper_parameters']['compile'] and 'state_dict' in state_dict:
@@ -124,7 +122,8 @@ if __name__ == "__main__":
     gpt_model = GPT(cfg)
 
     # Setup dataset and model
-    dataset = TextDataset(args, args.txt_file, args.block_size, CharTokenizer)
+    tokenizer = CharTokenizer(datafile_path=args.txt_file)
+    dataset = TextDataset(args, args.txt_file, args.block_size, tokenizer)
     model = GPTLightningModule(cfg, gpt_model, dataset)
     model.load_state_dict(state_dict['state_dict'])
 
@@ -139,4 +138,5 @@ if __name__ == "__main__":
         do_sample=args.do_sample,
         temperature=args.temperature,
         device=device,
+        tokenizer=tokenizer
     )

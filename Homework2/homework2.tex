@@ -206,6 +206,11 @@ which may harm the model's ability to learn the actual patterns, since it can mi
 
 \subsubsection*{c iv)}
 
+Zero padding can dilute the information of the image by adding zero-value borders that match the original black background.
+While Replicate, when the boxes are near the edges, can help maintain the boxes' patterns by extending the edge pixels into the padded area,
+meaning we won't have so much dilutation of the information of the image. This makes the CNN "see" the boxes better while going
+through the layers, which can lead to better performance.
+
 Zero padding creates a sudden change in pixel values at the image boundaries, resulting in high derivative values across
 the receptive fields near the edges. This can cause the CNN to confuse these abrupt changes with actual edges,
 particularly the edges of the green and red boxes in the dataset that we are trying to predict.
@@ -469,7 +474,32 @@ sequences, for example, in resuming tasks, where we have large documents.
 
 \subsubsection*{b)}
 
-\textcolor{red}{TODO: just need to put some prompts here}
+To test the model on \textbf{Grimms' Fairy Tales} I used some prompts to test scenarios, characters and objects: 
+
+\begin{itemize}
+    \item \textbf{Prompt:} \textit{'Hansel said to'} 
+    \item Model: Hansel said to Gretel: 'We shall soon find the way,' but they did not find it. They walked the whole night and all the next day too from morning till evening, but they did not get out of the forest
+\end{itemize}
+
+\begin{itemize}
+    \item \textbf{Prompt:} \textit{'The wolf said to'}
+    \item Model: The wolf said to the Little Red-Cap, and then he said: 'See, Little Red-Cap, here is a piece
+of cake and a bottle of wine; take them to your grandmother, she is ill
+and weak, and they will do her finger.'
+\end{itemize}
+
+\begin{itemize}
+    \item \textbf{Prompt:} \textit{'There was once'}
+    \item Model: There was once a man called Frederick: he had a wife whose name was
+Catherine, and they had not long been married. One day Frederick said.
+'Kate! I am going to work in the fields'
+\end{itemize}
+
+\begin{itemize}
+    \item \textbf{Prompt:} \textit{'Rapunzel had'}
+    \item Model: Rapunzel had magnificent long hair, fine as spun gold, and when she
+heard the voice of the enchantress she unfastened her braided tresses
+\end{itemize}
 
 \subsection*{Question 2.9}
 
@@ -479,6 +509,7 @@ sequences, for example, in resuming tasks, where we have large documents.
 \textcolor{red}{TODO: REVISE}
 
 \subsubsection*{b)}
+\textcolor{red}{TODO}
 
 \newpage
 
@@ -561,6 +592,207 @@ if a node has high degree, it will be more influenced by its neighbors because t
 We can conclude, in this case, that the nodes that change the most are nodes $2$, $4$ and $5$, since they have higher degree $(3)$.
 
 \textcolor{red}{NEEDS REVISION}
+
+\subsection*{Question 3.2}
+
+\subsubsection*{a)}
+
+The bias term defined as $B^{(l)}h_v^{(l)}$ allows to introduce a self-loop to each node in the graph, that is, it allows
+a node $v$ to retain some of its previous information independent of the information from its neighbors. This is important,
+since otherwise, the updated embedding $h_v^{(l+1)}$ would be completely dependent on the information from the neighbors
+as seen in the term $\sum_{u \in N(v)} \frac{h_u^{(l)}}{|N(v)|}$, meaning it would dilute its unique characteristics.
+
+\subsubsection*{b)}
+
+Correlating with equation 6, we can see that that equation can be interpreted as simple instance of message passing, that is:
+
+\begin{itemize}
+    \item Message: The term $\frac{h_u^{(l)}}{|N(v)|}$ can be seen as the message passed from node $u$ to node $v$. Hence,
+the $W^{(l)} \sum_{u \in N(v)} \frac{h_u^{(l)}}{|N(v)|}$ term can be seen as the aggregation of the messages from all neighbors of node $v$
+where $W^{(l)}$ parametrizes how these messages are combined.
+    \item Update: The term $B^{(l)}h_v^{(l)}$ and the activation function $\sigma$ can be seen as the update function that
+incorporates the message from the neighbors and the node's own information to update the node's embedding.
+\end{itemize}
+
+\subsection*{Question 3.3}
+
+\subsubsection*{a)}
+
+Defining $D \in \mathbb{R}^{N \times N}$ as the degree matrix of the graph, we have that $D_{ii} = |N_v|$. We also define
+$A \in \mathbb{R}^{N \times N}$ as the adjacency matrix of the graph with $A_{ij} = 1$ if there is an edge between nodes $i$ and $j$,
+and $0$ otherwise. And define $H^{(l)} \in \mathbb{R}^{N \times D}$ as the matrix of node embeddings at layer $l$.
+
+From equation 6, if we stack them for all nodes, we have that the update rule for all nodes can be written as:
+
+\begin{align*}
+    \begin{bmatrix}
+        h_v^{(l+1)} \\
+        \vdots \\
+        h_N^{(l+1)}
+    \end{bmatrix}
+    & =  \begin{bmatrix}
+        \sigma \left(W^{(l)} \sum_{u \in N(v)} \frac{h_u^{(l)}}{|N(v)|} + B^{(l)}h_v^{(l)}\right) \\
+        \vdots \\
+        \sigma \left(W^{(l)} \sum_{u \in N(v)} \frac{h_u^{(l)}}{|N(v)|} + B^{(l)}h_N^{(l)}\right)
+    \end{bmatrix}  \\
+\end{align*}
+
+Now, instead of creating a higher dimensional tensor with a repeated weight matrix $W^{(l)}$ and a repeated bias matrix $B^{(l)}$,
+we can rewrite with a single weight matrix $W^{(l)}$ and a single bias matrix $B^{(l)}$ by transposing it in the other side,
+the same way we do it in batch dimensions in neural networks. We can then rewrite the equation as:
+
+\begin{align*}
+    H^{(l+1)} & = \sigma \left(  \left( \begin{bmatrix}
+        \sum_{u \in N(1)} \frac{h_u^{(l)}}{|N(1)|} \\
+        \vdots \\
+        \sum_{u \in N(N)} \frac{h_u^{(l)}}{|N(N)|}
+    \end{bmatrix} \right) W^{(l)^T} +  \begin{bmatrix}
+        h_1^{(l)} \\
+        \vdots \\
+        h_N^{(l)}
+    \end{bmatrix}
+    B^{(l)^T}
+    \right) \\
+\end{align*}
+
+Now, we can separate the terms $\frac{1}{|N(v)|}$ by using a matrix multiplication and knowing that, since $D$ is a diagonal matrix,
+then its inverse is also a diagonal matrix with the inverse of the diagonal entries. We can then rewrite the equation as:
+
+\begin{align*}
+    H^{(l+1)} & = \sigma \left( \left(
+        \begin{bmatrix}
+            \frac{1}{|N(1)|} & 0 & \cdots & 0 \\
+            0 & \frac{1}{|N(2)|} & \cdots & 0 \\
+            \vdots & \vdots & \ddots & \vdots \\
+            0 & 0 & \cdots & \frac{1}{|N(N)|}
+        \end{bmatrix}
+        \begin{bmatrix}
+        \sum_{u \in N(1)} h_u^{(l)} \\
+        \vdots \\
+        \sum_{u \in N(N)} h_u^{(l)}
+    \end{bmatrix} \right) W^{(l)^T} + \begin{bmatrix}
+        h_1^{(l)} \\
+        \vdots \\
+        h_N^{(l)}
+    \end{bmatrix} B^{(l)^T}
+    \right) \\
+    &=
+    \sigma \left( \left(
+        D^{-1}
+        \begin{bmatrix}
+            \sum_{u \in N(1)} h_u^{(l)} \\
+            \vdots \\
+            \sum_{u \in N(N)} h_u^{(l)}
+        \end{bmatrix} \right) W^{(l)^T} + H^{(l)} B^{(l)^T}
+    \right) \\
+\end{align*}
+
+Now, looking at the terms $\sum_{u \in N(v)} h_u^{(l)}$, we can see that we are summing the embeddings of the neighbors of node $v$.
+Which is the same as summing over all nodes with a delta that is equal to one if there is an edge between nodes $v$ and $u$. This
+delta can be represented by the adjacency matrix $A$, meaning that that sum can be rewritten as $\sum_{v} A_{uv} h_u^{(l)}$.
+
+Finally, we have that the update rule can be written as:
+
+\begin{align*}
+    H^{(l+1)} & = \sigma \left( \left(
+        D^{-1}
+        \begin{bmatrix}
+        A_{11} & A_{12} & \cdots & A_{1N} \\
+        A_{21} & A_{22} & \cdots & A_{2N} \\
+        \vdots & \vdots & \ddots & \vdots \\
+        A_{N1} & A_{N2} & \cdots & A_{NN}
+    \end{bmatrix}
+    \begin{bmatrix}
+        h_1^{(l)} \\
+        \vdots \\
+        h_N^{(l)}
+    \end{bmatrix}
+    \right) W^{(l)^T} + \begin{bmatrix}
+        h_1^{(l)} \\
+        \vdots \\
+        h_N^{(l)}
+    \end{bmatrix} B^{(l)^T}
+    \right) \\
+    &=
+    \sigma \left(
+        D^{-1} A H^{(l)} W^{(l)^T}
+     + H^{(l)} B^{(l)^T}
+    \right) \\
+\end{align*}
+
+Hence, the final update rule for the graph convolutional network is:
+
+\begin{align*}
+    H^{(l+1)} & = \sigma \left(
+        D^{-1} A H^{(l)} W^{(l)^T}
+     + H^{(l)} B^{(l)^T}
+    \right) \\
+\end{align*}
+
+Where $\sigma$ is applied row-wise.
+
+Checking the dimensions, we have that $D^{-1} A H^{(l)} W^{(l)^T}$ is a product of a $N \times N$ matrix with a $N \times N$ with a $N \times D$ with a $D \times (D + 1)$,
+which results in a $N \times (D + 1)$ matrix. The term $H^{(l)} B^{(l)^T}$ is a product of a $N \times D$ with a $D \times (D + 1)$, which results in a $N \times (D + 1)$ matrix.
+Hence, the final output is a $N \times (D + 1)$ matrix, which is the same as the output matrix $H^{(l + 1)}$.
+
+\textcolor{red}{CHECK DIMENSIONS, SPECIALLY ON W AND B}
+
+\subsubsection*{b)}
+
+Median aggregation is a type of aggregation that is used to combine the information from the neighbors of a node in a graph
+by taking the median of the embeddings of the neighbors. The problem is that Median aggregation is not a linear
+operation, which means that it cannot be represented as a matrix multiplication. Hence, the matrix form is not
+directly applicable to the median aggregation.
+
+\subsection*{Question 3.4}
+
+\subsubsection*{a)}
+
+In GCNS, the weights that are used for aggregation are shared across all nodes in the graph, that is, they are uniform
+or fixed for all nodes. This means that all neighbors of a node are aggregated in the same way equally. In GATs,
+the the aggregation uses weights given by attention coefficients that are learned during training, which means that
+the weights are different for each node and each neighbor. This allows the model to learn assign different importance
+to different neighbors. 
+
+\subsubsection*{b)}
+
+As explained in the previous question, the weights in GCNs are shared across all nodes meaning all neighbors contribute equally. This means the model is
+less robust to noise since it cannot suppress the influence of some noisy neighbors. In GATs, the model can learn to assign
+different importance to different neighbors, which allows it to suppress the influence of noisy neighbors and focus on the
+most relevant ones. This makes GATs more robust to noise. With this being said, is expected that GCNs will have a lower
+learned embedding quality than GATs.
+
+\subsubsection*{c)}
+
+A standard transformer applied to a sentence can be interpreted as a GNN if we consider the following structure: 
+
+\begin{itemize}
+    \item \textbf{Nodes:} Each token in the sentence is a node in the graph. The embeddings of the tokens are the node features.
+    \item \textbf{Edges:} The edges in the graph are the connections between the tokens in the sentence, that is, the edges are defined by the attention mechanism.
+The edge weights are the attention coefficients.
+    \item \textbf{Graph Structure:} In a standard transformer, we are attending to all tokens in the sentence, which means that the graph is fully connected, that is,
+each node is connected to every other node.
+\end{itemize}
+
+With this, we can make the following analogies:
+
+\begin{itemize}
+    \item The message passage in GNNs is equivalent to the attention mechanism in transformers, since the attention mechanism allows each token to attend to every other token in the sequence.
+    \item The attention scores tell us the strength of the relationship between the tokens, which is similar to the edge weights in GNNs.
+\end{itemize}
+
+\subsubsection*{d)}
+
+Two advantages of GATs over transformers are:
+
+\begin{itemize}
+    \item \textbf{Computational Efficiency}: Standard transformers compute the attention for all pairs of tokens in the sequence, meaning it has a global attention mechanism.
+GATs compute attention only for the neighbors of each node, which makes them more computationally efficient and more scalable to larger graphs.
+    \item \textbf{Interpretability and Graph Structure}: GATs are designed from the ground-up to work on graphs and capture the graph structure, where transformers require explicit encoding of the graph structure,
+which is not intuitive for most problems. Besides that, GATs allow us to have a better interpretability of the model, since we can see the relationships between the nodes, while in transformers
+we are not aware of this. 
+\end{itemize}
+
 
 
 

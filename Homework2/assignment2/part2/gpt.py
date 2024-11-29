@@ -156,7 +156,9 @@ class CausalSelfAttention(nn.Module):
         # Mask the calculated attention weights with the mask parameter.
 
         if self.use_flash_attn:
-            y = ...
+            mask = self.mask[:, :, :T, :T].to(q.device)  # Ensure the mask is on the correct device
+            attn_output, _ = F.scaled_dot_product_attention(q, k, v, attn_mask=mask, dropout_p=self.config.attn_pdrop)
+            y = attn_output
         else:
             # Compute attention scores
             att = (q @ k.transpose(-2, -1)) / math.sqrt(head_dim) # (B, nh, T, hs) x (B, nh, hs, T) -> (B, nh, T, T) / sqrt(hs)
@@ -506,11 +508,23 @@ class GPT(nn.Module):
                     cumulative_probs = torch.cumsum(sorted_probs, dim=-1)
 
                     # Mask tokens exceeding top-p cumulative probability
+                    sorted_probs = sorted_probs.float()
                     sorted_probs[cumulative_probs > top_p] = 0
                     sorted_probs /= sorted_probs.sum(dim=-1, keepdim=True)
 
+                    # Ensure that we dont have NaNs or Infs
+                    if torch.isnan(sorted_probs).any() or torch.isinf(sorted_probs).any():
+                        sorted_probs = torch.nan_to_num(sorted_probs, nan=1e-10, posinf=1e-10, neginf=1e-10)
+
                     # Scatter back to original order
-                    probs = torch.zeros_like(probs).scatter_(-1, sorted_indices, sorted_probs)
+                    probs = torch.zeros_like(probs, dtype=torch.float32).scatter_(-1, sorted_indices, sorted_probs)
+
+                # Ensure probs contains valid values
+                probs = torch.clamp(probs, min=1e-10)  # Avoid NaNs or negative probabilities
+
+                # Alternatively, check for NaNs or Infs and replace them
+                if torch.isnan(probs).any() or torch.isinf(probs).any():
+                    probs = torch.nan_to_num(probs, nan=1e-10, posinf=1e-10, neginf=1e-10)
 
                 # Sample from the probability distribution
                 idx_next = torch.multinomial(probs, num_samples=1)
