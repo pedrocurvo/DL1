@@ -162,7 +162,7 @@ def train(args):
 
     # Initialise the gpt-model
     if args.use_pretrained:
-        gpt_model = GPT.from_pretrained(model_type=args.model_type)
+        gpt_model = GPT.from_pretrained(model_type=args.model_type, args=args)
     else:
         cfg = GPT.get_default_config()
         cfg.model_type = args.model_type
