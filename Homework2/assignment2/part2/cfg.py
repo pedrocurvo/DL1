@@ -8,7 +8,7 @@ def get_config():
     parser.add_argument('--txt_file', type=str, default="./assets/book_EN_grimms_fairy_tales.txt", help="Path to a .txt file to train on")
     parser.add_argument('--model_type', type=str, default='gpt-mini', help="Define the gpt2 version to be initialised")
     parser.add_argument('--block_size', type=int, default=128, help='Specify block size of input sequences')
-    parser.add_argument('--use_pretrained', type=bool, default=False, help='Boolean whether to use pretrained huggingface weights.')
+    parser.add_argument('--use_pretrained', action="store_true", help='Boolean whether to use pretrained huggingface weights.')
     parser.add_argument('--abs_emb', action="store_true", help='use absolute position embedding')
     # Training
     parser.add_argument('--train_batch_size', type=int, default=128, help='Batch size to train with.')
@@ -23,7 +23,7 @@ def get_config():
     # Additional arguments. Feel free to add more arguments
     parser.add_argument('--log_dir', type=str, default='./logs', help='Sets logging directory for tensorboard logger.')
     parser.add_argument('--seed', type=int, default=0, help='Seed for pseudo-random number generator')
-    #parser.add_argument('--num_workers', type=int, default=len(os.sched_getaffinity(0))-1, help='Num cpu workers used for training')
+    parser.add_argument('--num_workers', type=int, default=len(os.sched_getaffinity(0))-1, help='Num cpu workers used for training')
     parser.add_argument('--progress_bar', action='store_true', help=(
                             'Use a progress bar indicator for interactive experimentation. '
                             'Not to be used in conjuction with SLURM jobs'
