@@ -157,7 +157,7 @@ class CausalSelfAttention(nn.Module):
 
         if self.use_flash_attn:
             mask = self.mask[:, :, :T, :T].to(q.device)  # Ensure the mask is on the correct device
-            attn_output, _ = F.scaled_dot_product_attention(q, k, v, attn_mask=mask, dropout_p=self.config.attn_pdrop)
+            attn_output = F.scaled_dot_product_attention(q, k, v, attn_mask=mask, dropout_p=self.config.attn_pdrop)
             y = attn_output
         else:
             # Compute attention scores
@@ -321,7 +321,7 @@ class GPT(nn.Module):
             torch.nn.init.ones_(module.weight)
 
     @classmethod
-    def from_pretrained(cls, model_type):
+    def from_pretrained(cls, model_type, args=None):
         """
         Initialize a pretrained GPT model by copying over the weights
         from a huggingface/transformers checkpoint.
@@ -331,6 +331,8 @@ class GPT(nn.Module):
 
         # create a from-scratch initialized minGPT model
         config = cls.get_default_config()
+        if args is not None:
+            config.__dict__.update(args.__dict__)
         config.model_type = model_type
         config.vocab_size = 50257 # openai's model vocabulary
         config.block_size = 1024  # openai's model block_size
@@ -348,16 +350,36 @@ class GPT(nn.Module):
         # this means that we have to transpose these weights when we import them
 
         for k in keys:
+            if k == 'transformer.wte.weight':
+                # Adjust key for token embeddings
+                k_changed = 'transformer.w_token_emb.weight'
+            if k == 'transformer.wpe.weight':
+                # Adjust key for position embeddings
+                k_changed = 'transformer.w_pos_emb.weight'
+            if 'ln_' in k:
+                # Adjust key for layer normalization
+                k_changed = k.replace('ln_', 'layer_norm_')
+            if 'mlpf' in k:
+                # Adjust key for feedforward layer
+                k_changed = k.replace('mlp', 'mlpf')
+            if 'self_attention' in k:
+                # Adjust key for self-attention layer
+                k_changed = k.replace('attn', 'self_attention')
+
+            if k_changed not in sd:
+                continue
+            
             if any(k.endswith(w) for w in transposed):
                 # special treatment for the Conv1D weights we need to transpose
-                assert sd_hf[k].shape[::-1] == sd[k].shape
+                print(f"Transposing {k} -> {k_changed}")
+                assert sd_hf[k].shape[::-1] == sd[k_changed].shape
                 with torch.no_grad():
                     sd[k].copy_(sd_hf[k].t())
             else:
                 # vanilla copy over the other parameters
-                assert sd_hf[k].shape == sd[k].shape
+                assert sd_hf[k].shape == sd[k_changed].shape
                 with torch.no_grad():
-                    sd[k].copy_(sd_hf[k])
+                    sd[k_changed].copy_(sd_hf[k])
 
         return model
 
