@@ -509,7 +509,20 @@ heard the voice of the enchantress she unfastened her braided tresses
 \textcolor{red}{TODO: REVISE}
 
 \subsubsection*{b)}
-\textcolor{red}{TODO}
+
+The benefits of Flash-Attention come from the nature of Load between Memory and Compute. So basically, we have HBM (High Bandwidth Memory)
+that is used to store, write and read the matrices $Q$, $K$ and $V$ and intermediate operations. HBM has a large memory, but is slow to compute things. Meanwhile, we have
+SRAM (Static Random Access Memory) that is used to compute the intermediate results of the attention mechanism, since SRAM is fast to compute things.
+In a normal attention mechanism, the HBM loads the matrices $Q$ and $K$ into the SRAM, which then computes the product $QK^T$. 
+This product is then written back to the HBM, and the HBM loads the $QK^T$ into the SRAM to compute the softmax. Which then
+is written back to the HBM and loaded again into the SRAM with the $V$ matrix to compute the final attention output, which is then written
+back to the HBM. This process of loads and writes between the HBM and SRAM is slow and inefficient.
+Flash Attention solves this problem by using a Flash Memory, that is, it fuses all those operations into a single operation,
+a so called fused-kernel, which is then loaded into the SRAM with the $Q$, $K$ and $V$ matrices. Then everything is computed in the SRAM
+at once and written back to the HBM. This reduces the number of loads and writes between the HBM and SRAM, which makes the process
+faster and more efficient.
+This in conjuction with the parallel computation of the multiple attention heads, allows the model to be more efficient and faster. Indeed,
+with flash-attention we can have a $O(n)$ complexity in memory, which is faster than the $O(n^2)$ complexity of the self-attention mechanism.
 
 \newpage
 
