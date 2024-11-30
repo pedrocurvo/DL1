@@ -51,9 +51,9 @@ class GPTLightningModule(pl.LightningModule):
         self.log('train_acc', acc, on_epoch=True)
 
         # Generate some sentences once in a while
-        # if self.global_step % self.config.generate_every_n_steps == 0:
-        #     generated_sents = self.generate()
-        #     self.logger.experiment.add_text('Training texts', generated_sents, self.global_step)
+        if self.global_step % self.config.generate_every_n_steps == 0:
+            generated_sents = self.generate()
+            self.logger.experiment.add_text('Training texts', generated_sents, self.global_step)
         return loss
     
 
