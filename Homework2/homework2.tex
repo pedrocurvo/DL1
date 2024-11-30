@@ -175,17 +175,13 @@ For \textit{valid}, \textit{sconv} and \textit{fconv} we have the following diff
 \subsubsection*{c ii)}
 
 If we look into the network architecture we can see that we first use a kernel size of 3 with a stride of 1 and then a stride of 2
-maintaining the kernel size of 3. With this setup, the convolution operation will reduce the spatial dimensions
-of the feature maps. 
-By using the \textit{valid}, we are adding no padding to the image, which means that the output size of the convolution operation
-will be the smallest of the tree. This lead to the reduction of the spatial dimensions of the feature maps, leading
-to less spatial information being passed to the next layer.
-\textit{sconv} retains slighty more spatial information, since we are adding a padding of 1 to the image, which will
-lead to a slight increase in the output size of the convolution operation. This will lead to a slight increase in the spatial
-information passed to the next layer.
-\textit{fconv} retains the most spatial information, since we are adding a padding of 2 to the image, which will
-lead to a significant increase in the output size of the convolution operation. This will lead to a significant increase in the spatial
-information passed to the next layer.
+maintaining the kernel size of 3. This configuration reduces the spatial dimensions of the feature maps during the convolution operation.
+
+Using the \textit{valid} padding means no padding is added to the input, which results in the smallest possible output size for the convolution operation. As a result, the spatial dimensions of the feature maps are reduced, leading to less spatial information being passed to the next layer.
+
+On the other hand, the \textit{sconv} applies a padding of 1 to the input, which slightly increases the output size of the convolution. This helps retain a bit more spatial information for the next layer.
+
+The \textit{fconv} applies a padding of 2, which leads to a larger output size. This retains more spatial information, allowing the model to preserve more details in the feature maps as they pass to the next layer.
 
 With that being said, we can extrapolate that larger feature maps will keep more information that allows to distinguish
 between the classes in the dataset, which leads to the better performance of the model in the accuracy metric as observed. 
@@ -194,16 +190,11 @@ to the amount of spatial information retained by the feature maps.
 
 \subsubsection*{c iii)}
 
-The \texttt{reflect} padding mirrors the image along its edges, while \texttt{fconv} uses zero padding.
-Reflect padding can reduce abrupt transitions at the edges by reflecting nearby pixel values,
-but it can introduce patterns at the boundaries that do not exist in the original image.
-These patterns can alter the feature extraction near the edges and might reduce the ability for the model to generalize.
+The \texttt{reflect} padding mirrors the image along its edges, while \texttt{fconv} padding uses zero padding. Reflect padding can reduce abrupt transitions at the edges by reflecting nearby pixel values. However, it can also introduce artificial patterns at the boundaries that do not exist in the original image, which may affect feature extraction and reduce the model’s ability to generalize.
 
-In this dataset, where each image has a black background with one green box and one red box, zero padding performs better
-as it adds zero-value borders that match the original black background,
-allowing the network to focus on the actual box patterns.
-Reflect padding, applied at all layers, can create artificial features at the edges, such as duplicating and inverting the boxes,
-which may harm the model's ability to learn the actual patterns, since it can mix the patterns of the boxes.
+In this dataset, where each image has a black background with a green and a red box, zero padding performs better. Zero-padding adds borders with zero values, which match the original black background and help the model focus on the box patterns in the center.
+
+In contrast, \texttt{reflect} padding at all layers can create artificial features at the edges by duplicating and inverting the boxes. This can confuse the model, especially when the boxes are near the edges, as the model may confuse these artificial features created by the padding as part of the actual patterns.
 
 \subsubsection*{c iv)}
 
@@ -212,18 +203,18 @@ While Replicate, when the boxes are near the edges, can help maintain the boxes'
 meaning we won't have so much dilutation of the information of the image. This makes the CNN "see" the boxes better while going
 through the layers, which can lead to better performance.
 
-Zero padding creates a sudden change in pixel values at the image boundaries, resulting in high derivative values across
-the receptive fields near the edges. This can cause the CNN to confuse these abrupt changes with actual edges,
+Adding to this, zero padding can create a sudden change in pixel values at the image boundaries, resulting in high derivative values.
+This can cause the CNN to confuse these abrupt changes with actual edges,
 particularly the edges of the green and red boxes in the dataset that we are trying to predict.
-The network may then interpret the zero padding as an actual feature, leading to worse performance in
-edge detection, hence worse performance in identifying the boxes.
+In this case, this can only happen after a few layers, since the
+background is black, meaning we will only have this when some information from the boxes are diffused to the edges.
 
 Replicate padding, on the other hand, extends the edge pixels into the padded area, ensuring a smoother transition, since
 the pixel will have the same value as the nearest edge pixel. This helps preserve the local context near the edges by maintaining
 some statistical properties of the image, such as the derivatives. This is beneficial
-when detecting the edges of the boxes, since replicate padding prevents the network from confusing the padded area with the actual
-edges. As a result, the replicate padding improves the model's performance in detecting the true edges of the boxes, leading
-to a better accuracy.
+when detecting the edges of the boxes. 
+
+With these two hypothesis, we can see why the \texttt{replicate} padding performs better than the \texttt{zero} one.
 
 
 
@@ -319,17 +310,15 @@ As seen in the graph above, the model's accuracy is more stable across different
 the accuracy for the unrotated images is slightly lower than the model trained on the non-augmented dataset. Again, we also observe
 spikes in accuracy at specific angles, such as 90°, 180°, and 270°.
 
-When the model is trained on an augmented dataset with random rotations, it is exposed to a wide variety of orientations for
+When the model is trained on an augmented dataset with random rotations, it is exposed to a variety of orientations for
 the objects in the images. This allows the model to learn features that are not dependent on a specific orientation. By
-incorporating rotated versions of the images during training, the model learns to recognize patterns and objects regardless
+using rotated versions of the images during training, the model learns to recognize patterns and objects regardless
 of their angle. This helps the network develop rotational invariance, as the filters it learns become capable of detecting
 the same features from different perspectives.
 
-As a result, the model becomes more robust to rotation, and its accuracy stabilizes across different angles during inference.
-With this training approach, the network does not rely on a fixed alignment of the features, and can instead generalize across
-a range of orientations. This improved performance across various rotation angles indicates that the network has learned to
-identify the objects or patterns in the images without being influenced by their orientation, thereby overcoming the limitations
-of rotational sensitivity found in networks trained only on images with fixed orientations.
+As a result, the model becomes more robust to rotation, and its accuracy stabilizes across different angles.
+With this approach, the network does not rely on a fixed alignment of the features, and can generalize across
+to more orientations. This is, again, showed by the graph above.
 
 \newpage
 
@@ -586,7 +575,7 @@ For the second graph we have:
 $[
 [0, 1, 0, 0, 0, 0],
 [1, 0, 1, 0, 1, 0],
-[0, 0, 1, 0, 1, 0],
+[0, 1, 0, 1, 0, 0],
 [0, 0, 1, 0, 1, 1],
 [0, 1, 0, 1, 0, 1], 
 [0, 0, 0, 1, 1, 0]]$
@@ -611,12 +600,13 @@ More generally, the entry $A_{uv}^n$ is the sum of the number of paths of length
 
 \textbf{Note:} In the diagonals we have the number of paths of length 2 that start and end in the same node, for example,
 if node $1$ and $5$ are connected this represents also a path of length 2, because we can go from node $1$ to node $5$ and
-then back to node $1$. This is only true in the case of undirected graphs.
+then back to node $1$ in this undirected graph.
 
 \subsubsection*{c)}
 
 The Laplacian matrix is defined as $L = D - A$, where $D$ is the degree matrix and $A$ is the adjacency matrix.
-The degree matrix is a diagonal matrix where the diagonal entries are the sum of the weights of the edges connected to each node.
+The degree matrix is a diagonal matrix where the diagonal entries are the degree of each node, that is, the number of edges
+connected to each node.
 
 For the second graph we have that $D$ is:
 
@@ -633,18 +623,20 @@ And the Laplacian matrix is:
 $[
 [1, -1,  0, 0, 0, 0],
 [-1, 3, -1, 0, -1, 0],
-[0, -1,  2, 0, -1, 0],
+[0, -1,  2, -1, 0, 0],
 [0, 0,  -1, 3, -1, -1],
 [0, -1,  0, -1, 3, -1],
 [0, 0,   0, -1, -1, 2]]$
 
-By applying the Laplacian matrix to an input matrix $X$, we have that $F = L \cdot X$. 
-If we consider the way matrix multiplication works, we see that $F$ is the result of the span of the row space of $X$ by the columns of $L$.
-The columns of $L$ have larger value if $D$ is larger, that is, if the node is more connected to other nodes, which means that
-if a node has high degree, it will be more influenced by its neighbors because the corresponding row in $L$ will have larger values.
-We can conclude, in this case, that the nodes that change the most are nodes $2$, $4$ and $5$, since they have higher degree $(3)$.
+By applying the Laplacian matrix to an input matrix $X$, we get $F = L \cdot X$. The resulting $F$ represents the transformed
+feature values of the nodes. The Laplacian matrix $L$  can be seen as an operator on the rows of $X$, and the result
+will depend on the structure of $L$, which 'encodes' the relationships between connected nodes.
 
-\textcolor{red}{NEEDS REVISION}
+The rows of $L$ correspond to the connections of each node to its neighbors. If a node has a higher degree, the corresponding row in 
+$L$ will have more non-zero entries, meaning that the node's feature value will be influenced more by its neighbors.
+
+Thus, the nodes that will change the most are those with the highest degree. In this case, nodes 2, 4, and 5,
+each with degree 3, will experience the largest changes in feature values compared to nodes with lower degree.
 
 \subsection*{Question 3.2}
 
@@ -741,7 +733,7 @@ then its inverse is also a diagonal matrix with the inverse of the diagonal entr
 \end{align*}
 
 Now, looking at the terms $\sum_{u \in N(v)} h_u^{(l)}$, we can see that we are summing the embeddings of the neighbors of node $v$.
-Which is the same as summing over all nodes with a delta that is equal to one if there is an edge between nodes $v$ and $u$. This
+Which is the same as summing over all nodes with a delta that is equal to one if there is an edge between nodes $v$ and $u$ and 0 otherwise. This
 delta can be represented by the adjacency matrix $A$, meaning that that sum can be rewritten as $\sum_{v} A_{uv} h_u^{(l)}$.
 
 Finally, we have that the update rule can be written as:
@@ -788,23 +780,24 @@ Checking the dimensions, we have that $D^{-1} A H^{(l)} W^{(l)^T}$ is a product 
 which results in a $N \times (D + 1)$ matrix. The term $H^{(l)} B^{(l)^T}$ is a product of a $N \times D$ with a $D \times (D + 1)$, which results in a $N \times (D + 1)$ matrix.
 Hence, the final output is a $N \times (D + 1)$ matrix, which is the same as the output matrix $H^{(l + 1)}$.
 
-\textcolor{red}{CHECK DIMENSIONS, SPECIALLY ON W AND B}
-
 \subsubsection*{b)}
 
 Median aggregation is a type of aggregation that is used to combine the information from the neighbors of a node in a graph
 by taking the median of the embeddings of the neighbors. The problem is that Median aggregation is not a linear
-operation, which means that it cannot be represented as a matrix multiplication. Hence, the matrix form is not
-directly applicable to the median aggregation.
+operation, since it does not satisfy linear properties such as additivity and homogeneity. This means that the median
+cannot be represented as a matrix multiplication, which is a linear operation.
+Hence, the matrix form is not directly applicable to the median aggregation.
 
 \subsection*{Question 3.4}
 
 \subsubsection*{a)}
 
-In GCNS, the weights that are used for aggregation are shared across all nodes in the graph, that is, they are uniform
-or fixed for all nodes. This means that all neighbors of a node are aggregated in the same way equally. In GATs,
-the the aggregation uses weights given by attention coefficients that are learned during training, which means that
-the weights are different for each node and each neighbor. This allows the model to learn assign different importance
+In GCNs, the weights used for aggregation are shared across all nodes. This means that the same set of weights is
+used for aggregating the features of neighbors for each node in the graph. These weights are learned during
+training, but remain uniform across nodes, that is, they do not vary depending on the node or its neighbors.
+
+In GATs, the aggregation uses weights given by attention coefficients that are learned during training, which means that
+the weights are different for each node and each neighbor. This allows the model to learn and assign different importance
 to different neighbors. 
 
 \subsubsection*{b)}
@@ -843,7 +836,8 @@ Two advantages of GATs over transformers are:
 GATs compute attention only for the neighbors of each node, which makes them more computationally efficient and more scalable to larger graphs.
     \item \textbf{Interpretability and Graph Structure}: GATs are designed from the ground-up to work on graphs and capture the graph structure, where transformers require explicit encoding of the graph structure,
 which is not intuitive for most problems. Besides that, GATs allow us to have a better interpretability of the model, since we can see the relationships between the nodes, while in transformers
-we are not aware of this. 
+we are not so much aware of this, since their attention mechanism is to focus on a token-level relationship, which might
+not immediately translate to a graph structure/node relationship.
 \end{itemize}
 
 
