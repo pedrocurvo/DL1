@@ -87,7 +87,10 @@ if __name__ == "__main__":
     parser.add_argument('--num_generated_tokens', type=int, default=77)
     parser.add_argument('--do_sample', action='store_true')
     parser.add_argument('--temperature', type=float, default=1.0)
+    parser.add_argument('--top_k', type=int, default=None)
+    parser.add_argument("--top_p", type=float, default=0.6)
     parser.add_argument('--prompt', type=str, default='Yesterday I went to the ')
+    parser.add_argument('--pretrained_tokenizer', action='store_true')
     gen_args = parser.parse_args()
     for key, value in vars(gen_args).items():
         setattr(args, key, value)
@@ -119,6 +122,11 @@ if __name__ == "__main__":
     
     # Create Namespace object from combined dictionary
     cfg = argparse.Namespace(**combined_cfg)
+
+    if cfg.use_pretrained:
+        cfg.block_size = 1024
+        cfg.vocab_size = 50257
+
     gpt_model = GPT(cfg)
 
     # Setup dataset and model
@@ -128,6 +136,7 @@ if __name__ == "__main__":
         args.vocab_size = tokenizer.max_token_value
     else:
         tokenizer = CharTokenizer(datafile_path=args.txt_file)
+        args.vocab_size = tokenizer.vocab_size
         
     dataset = TextDataset(args, args.txt_file, args.block_size, tokenizer)
     model = GPTLightningModule(cfg, gpt_model, dataset)
@@ -142,7 +151,9 @@ if __name__ == "__main__":
         num_samples=args.num_samples,
         n_steps=args.num_generated_tokens,
         do_sample=args.do_sample,
+        top_k=args.top_k,
+        top_p=args.top_p,
         temperature=args.temperature,
         device=device,
-        tokenizer=tokenizer
+        tokenizer=tokenizer,
     )
