@@ -146,16 +146,15 @@ To address this problem, we can pad the image using several techniques, such as 
 \end{table}
 
 \subsubsection*{b. ii)}
-Looking at the samples from the dataset, the pattern for class label 0 is to have a green box on the right and a red on the left.
-While the pattern for class label 1 is to have a red box on the right and a green on the left.
+Looking at the samples from the dataset, we can observe that, for \textbf{class label 0}, a green box is on the right, and a red
+box is on the left. For \textbf{class label 1}, this is reversed, with a red box on the right and a green box on the left.
 
-The samples in the train set and the ones in the test set differ in the position of the green and red boxes, but
-keeping the same pattern for each class label. For example, in the README.md, we can observe that the samples for
-class label 0 are concentrated in the top ot the image and the samples for class label 1 are concentrated in the bottom
-and in the test set, the samples for class label 0 are concentrated in the bottom and the samples for class label 1 are
-concentrated in the top.
-This means that the network will have to learn the pattern for each class label, regardless of the position of the boxes, 
-i.e., the network will have to learn the pattern of the boxes and not the position of the boxes.
+While the relative positions of the green and red boxes define each class,
+their absolute positions vary between the training and test sets. Looking at the README.md we observe that, in the training set,
+class label 0 samples are located at the top of the image, and class label 1 samples are at the bottom. In the test set,
+the positions switch: class label 0 samples are at the bottom, and class label 1 samples are at the top.
+This means that the network will have to focus on learning the relative arrangement of the boxes,
+which defines the class labels, rather than relying on their absolute positions in the overall image.
 
 \subsubsection*{c)}
 
@@ -166,10 +165,12 @@ The variables affecting the \texttt{conv\_type} are the \texttt{padding\_size} a
 For \textit{valid}, \textit{sconv} and \textit{fconv} we have the following differences:
 
 \begin{itemize}
-    \item \textit{valid}: No padding is added to the image, since the size of the padding is 0
-    \item \textit{sconv}: The padding added is a zero padding, with size 1
-    \item \textit{fconv}: The padding added is a zero padding, with size 2
+    \item \textit{valid}: No padding is added to the image, since the size of the padding is 0.
+    \item \textit{sconv}: The padding added is a zero padding, with size 1.
+    \item \textit{fconv}: The padding added is a zero padding, with size 2.
 \end{itemize}
+
+\textbf{Note:} Zero padding is used to add zeros to the borders of the image. The padding size determines the number of pixels added to the image in the borders.
 
 \subsubsection*{c ii)}
 
@@ -258,19 +259,24 @@ to a better accuracy.
 
 \subsubsection*{d ii)}
 
-As we can observe by the results, the model is able to achieve 100\% accuracy on the validation set for all padding types, 
-but it fails to generalize to the test set, achieving 0\% accuracy, performing worse in every padding type in \texttt{Net2}
-with lower accuracies than \texttt{Net1}.
+As we can observe by the results, the model, in \texttt{Net2}, is able to achieve 100\% accuracy on the validation set for all padding types, 
+but it fails to generalize to the test set, achieving 0\% accuracy, performing worse in every padding type
+with lower accuracies compared to \texttt{Net1}. Since we are getting 100\% accuracy in the validation set and 0\% accuracy in the test set,
+we might suspect of overfitting. 
 
 \subsubsection*{d iii)}
 
-In the \texttt{Net2}, we added an additional linear layer and we remove the AdaptiveMaxPool2d layer. 
-The additional linear layer increases exponentially the number of parameters in the model, which can lead to overfitting.
+In the implementation of \texttt{Net2}, an additional linear layer was added, and the AdaptiveMaxPool2d layer was removed.
+The inclusion of this extra linear layer significantly increases the number of parameters in the model, which can lead to overfitting.
+
 If we look into the \texttt{utils.py} file, we can see the the test dataset is shifted by 16 pixels relative to the validation
-and training dataset. This can mean that the model \texttt{Net2} is overfitting to the training and validation dataset
-by memorizing the overall positions of the boxes and, since they are shifted in the test dataset, the model is unable to
-generalize to the test dataset, leading to the 0\% accuracy. This makes sense if we also consider that the model
-is achieving 100\% accuracy in the validation set, while getting 0\% accuracy in the test set in all padding types.
+and training dataset. By taking this into account, we might speculate that the model \texttt{Net2} may be overfitting to the training and validation dataset
+by memorizing the overall positions of the boxes in the image and, since they are shifted in the test dataset, the model is unable to
+generalize to the test dataset, leading to the 0\% accuracy. That is, the model can only work on the specific positions of the boxes
+in the training and validation dataset, but not in other positions of the image.
+
+This interpretation is also supported by the observation that Net2 achieves 100\% accuracy on the validation set while
+consistently scoring 0\% on the test set, regardless of the padding type.
 
 \subsection*{Question 1.2}
 
@@ -284,18 +290,20 @@ is achieving 100\% accuracy in the validation set, while getting 0\% accuracy in
     \label{fig:angle_inference}
 \end{figure}
 
-CNNs are not naturally rotationally invariant because the filters they learn during training are sensitive to the orientation
-of features in the images. When an image is rotated, the learned filters may no longer align with the features in the new
-orientation. This misalignment reduces the model's ability to recognize patterns, leading to a drop in accuracy. The
-convolutional layers detect local patterns such as edges and textures in a fixed direction, and rotating the image changes
-the spatial relationships between these features, making it harder for the network to match them correctly.
+As we can see by the graph above, the model's accuracy decreases as the angle of rotation deviates from 0°
+and exhibits symmetry around 180°. The model performs relatively better at specific angles, such as 90°, 180°, and 270°,
+compared to neighboring angles. This behavior occurs because the model was trained on images with a fixed orientation,
+and the filters it learned are sensitive to the orientation of features.
 
-If the model is not trained on rotated images, it cannot learn to recognize objects or patterns from different angles.
-The performance of the model is highly dependent on the orientation of the test images, and it is likely to perform worse
-when presented with images that were not seen during training. Even though the model might perform better at certain rotation
-angles (e.g., 90° or 180°), accuracy typically drops as the angle deviates from those orientations. This demonstrates that
-CNNs require rotation-invariant training data or additional techniques like data augmentation to improve their ability to
-recognize rotated images.
+CNNs are not inherently rotationally invariant. The filters they learn during training are designed to detect patterns,
+such as edges and textures, in specific directions. When images are rotated, the spatial alignment between these filters
+and the features changes, causing a drop in accuracy. Rotating an image alters the spatial relationships between features,
+making it harder for the network to recognize patterns. That is why the model performs drops in accuracy when the images are rotated.
+
+Without training on rotated images, the model cannot generalize to recognize objects or patterns from different angles.
+This limitation causes the CNN to be dependent on the orientation of the test images. One way to address this issue is to
+augment the training data with rotated versions of the images. By exposing the model to a variety of orientations during training,
+it can learn to detect features regardless of the angle, leading to improved performance on rotated images during inference.
 
 \subsubsection*{b)}
 
@@ -306,6 +314,10 @@ recognize rotated images.
     \caption{Inference respect to angle of rotation with data augmentation}
     \label{fig:angle_inference_aug}
 \end{figure}
+
+As seen in the graph above, the model's accuracy is more stable across different angles of rotation when trained on an augmented dataset, although
+the accuracy for the unrotated images is slightly lower than the model trained on the non-augmented dataset. Again, we also observe
+spikes in accuracy at specific angles, such as 90°, 180°, and 270°.
 
 When the model is trained on an augmented dataset with random rotations, it is exposed to a wide variety of orientations for
 the objects in the images. This allows the model to learn features that are not dependent on a specific orientation. By
@@ -330,21 +342,27 @@ of rotational sensitivity found in networks trained only on images with fixed or
 \begin{itemize}
     \item Long input sequences can be challenging for Transformers due to the quadratic complexity of the self-attention mechanism, 
     that is, in self-attention, each token attends to every other token in the sequence, hence we have a  
-    $O(n^2)$ complexity that can be seen by multiplying the $Q$, $K$ and $V$ matrices. This can lead to both memory
-    and computational issues, which are worse when $n$ is large (larger sentences).
+    $O(n^2)$ complexity. This can lead to both memory
+    and computational issues, which are worse when $n$ is large (larger sentences), creating bottlenecks.
 
     \item One way to solve this problem is by using some kind of sparse attention mechanism that focus on a subset
-of local or key tokens. With this we can reduce the complexity of the self-attention mechanism. For example,
-the Reformer model~ %\cite{Kitaev2020}%
- uses locality-sensitive hashing to achieve a $O(n \log n)$ complexity.
+of local or key tokens, instead of a local attention. With this we can reduce the complexity of the self-attention mechanism. For example,
+the Reformer model \textbf{(Kitaev, N., Kaiser, Ł., \& Levskaya, A. (2020). Reformer: The Efficient Transformer)}
+uses locality-sensitive hashing to achieve a $O(n \log n)$ complexity.
 \end{itemize}
 
 \subsubsection*{b)}
 
 CNNs have a local receptive field that allows them to capture local patterns in the input data and which is done
-by the convolution operation between the input and a kernel filter. One the other hand, Transformers have a global
+by the convolution operation between the input and a kernel filter. The initial layers in a CNN capture local, low-level
+features and deeper layers combines them progressively, meaning the receptive field increases with network depth. This means
+that a exponential growth is required to capture long-range dependencies in the input data, which can be a limitation
+for CNNs in some tasks.
+
+One the other hand, Transformers have a global
 receptive field that allows them to capture long-range dependencies in the input data, which is done by the self-attention
-mechanism, since it allows each token to attend to every other token in the sequence.
+mechanism, since it allows each token to attend to every other token in the sequence. That is, we have an immediate
+global context in a single layer at a computational cost of $O(n^2)$, which, however, can be a limitation for long input sequences.
 
 \subsubsection*{c)}
 
@@ -353,14 +371,23 @@ $Q$ and $K$ matrices is scaled by $\frac{1}{\sqrt{d_k}}$ to prevent the dot prod
 dimensionality of the keys $d_k$ is high. If it were the case that some values were too large, the softmax function would
 produce gradients that are too small, leading to slower learning or vanishing gradients which would harm the gradient descent process.
 
+The choice for $d_k$ arises from the variance of the dot product of two random vectors. If we have two random vectors $x$ and $y$
+with zero mean and unit variance, the variance of their dot product is $d_k$. By scaling the dot product by $\frac{1}{\sqrt{d_k}}$,
+we ensure that the variance of the dot product is 1, which helps stabilize the gradients during training.
+(https://github.com/BAI-Yeqi/Statistical-Properties-of-Dot-Product/blob/master/proof.pdf)
+
 \subsubsection*{d)}
 
-If we assume we have the same total computation cost then the multiple attentions heads are beneficial because they allow
-to capture different types of dependencies and patterns simultaneously. Each attention head can focus on different parts of the
-input sequence, like in CNNs we have several filters. It can also help mitigate some bias that can originate in some
+If we assume we have the same total computation cost, then the multiple attentions heads are beneficial because they allow
+to capture different types of dependencies and patterns simultaneously.
+With a single head we can only learn a single representation and we are forced to attend to all tokens with the same
+learned weights, meaning we have a limited ability to capture different patterns in the input sequence.
+With multihead attention, each head learns a different representation subspace, meaning we can have different patterns
+captured by different heads that are extracting it in parallel. 
+
+This can also help mitigate some bias that can originate in some
 heads due to the dominance of some tokens and can help improve generalization because, by learning multiple sets of
 attention parameters, the model can be more robust to different tasks.
-
 
 \subsection*{Question 2.2}
 
@@ -374,14 +401,17 @@ attention parameters, the model can be more robust to different tasks.
 \subsubsection*{c)}
 
 The MLP head is wide and not deep for several factors.
-In one hand, we want to keep independence of tokens in the MLP, meaning we don't need a deep network to capture
-the dependencies between the tokens. With a wide network, we are basically representing each token in a higher-dimensional
-space, which can help to capture more complex patterns independently. If we employed a deep network, we would be
-capturing dependencies between tokens, which is not necessary in this case, since the self-attention mechanism already
-does it.
-In the other hand, with a wide network we can apply a parallel computation, that is, splitting the model across multiple
-GPUs, which can lead to more computational efficiency. By keeping the MLP shallow, we also reduce the probability of overfitting
-and can keep a more stable training process.
+\begin{itemize}
+    \item We want to keep a degree of independence of tokens in the MLP, meaning we don't need a deep network to capture
+    long dependencies between the tokens. With a wide network, we are basically representing each token in a higher-dimensional
+    space, which can help to capture more complex patterns independently. If we employed a deep network, we would be
+    capturing deeper dependencies between tokens, which is not necessary in this case, since the self-attention mechanism already
+    does it.
+    \item Wide networks are better for parallelization, that is, we can split the model across multiple
+    GPUs, which can lead to more computational efficiency. 
+    \item Fewer layers can reduce vanishing gradient problems and are easier to optimize. Hence, by keeping the MLP shallow, we also reduce the probability of overfitting
+    and can keep a more stable training process.
+\end{itemize}
 
 
 \subsection*{Question 2.4}
@@ -392,7 +422,8 @@ If we do not use a positional embedding, the Transformer model will not be able 
 input sequence. This is because the self-attention mechanism treats all tokens as independent, and without positional information,
 meaning is permutation invariant. For example, without positional embeddings, the model would treat the sentences "The dog bit the man"
 and "The man bit the dog" as the same, which is not the desired behavior. We need to have a positional embedding
-for a sequential structure, specially for tasks like syntax, etc... which are characteristics of LLMs.
+for a sequential structure, specially for tasks like syntax, etc... which are characteristics of language tasks that we
+want the model to learn.
 
 \subsubsection*{b)}
 
@@ -470,11 +501,10 @@ sequences, for example, in resuming tasks, where we have large documents.
 \subsubsection*{a)}
 
 \textcolor{blue}{CODE}
-\textcolor{red}{TODO: REVISE}
 
 \subsubsection*{b)}
 
-To test the model on \textbf{Grimms' Fairy Tales} I used some prompts to test scenarios, characters and objects: 
+To test the model on \textbf{Grimms' Fairy Tales} I used some prompts to test scenarios, characters and linguistic patterns:
 
 \begin{itemize}
     \item \textbf{Prompt:} \textit{'Hansel said to'} 
@@ -509,19 +539,30 @@ heard the voice of the enchantress she unfastened her braided tresses
 
 \subsubsection*{b)}
 
-The benefits of Flash-Attention come from the nature of Load between Memory and Compute. So basically, we have HBM (High Bandwidth Memory)
+The benefits of Flash-Attention come from the nature of Load between Memory and Compute in the GPU. So basically, we have HBM (High Bandwidth Memory)
 that is used to store, write and read the matrices $Q$, $K$ and $V$ and intermediate operations. HBM has a large memory, but is slow to compute things. Meanwhile, we have
 SRAM (Static Random Access Memory) that is used to compute the intermediate results of the attention mechanism, since SRAM is fast to compute things.
-In a normal attention mechanism, the HBM loads the matrices $Q$ and $K$ into the SRAM, which then computes the product $QK^T$. 
-This product is then written back to the HBM, and the HBM loads the $QK^T$ into the SRAM to compute the softmax. Which then
-is written back to the HBM and loaded again into the SRAM with the $V$ matrix to compute the final attention output, which is then written
-back to the HBM. This process of loads and writes between the HBM and SRAM is slow and inefficient.
-Flash Attention solves this problem by using a Flash Memory, that is, it fuses all those operations into a single operation,
+In a normal attention mechanism:
+
+\begin{itemize}
+    \item The HBM loads the matrices $Q$ and $K$ into the SRAM
+    \item SRAM computes the product $QK^T$ and writes it back to the HBM
+    \item HBM loads the $QK^T$ into the SRAM
+    \item SRAM computes the softmax and writes it back to the HBM
+    \item HBM loads the $softmax(QK^T)$ and the $V$ matrix into the SRAM
+    \item SRAM computes the final attention output and writes it back to the HBM
+\end{itemize}
+
+This process of loads and writes between the HBM and SRAM is slow and inefficient.
+Flash Attention solves this problem by fusing all those operations into a single operation,
 a so called fused-kernel, which is then loaded into the SRAM with the $Q$, $K$ and $V$ matrices. Then everything is computed in the SRAM
 at once and written back to the HBM. This reduces the number of loads and writes between the HBM and SRAM, which makes the process
 faster and more efficient.
-This in conjuction with the parallel computation of the multiple attention heads, allows the model to be more efficient and faster. Indeed,
-with flash-attention we can have a $O(n)$ complexity in memory, which is faster than the $O(n^2)$ complexity of the self-attention mechanism.
+
+This, in conjuction with the tilling techniques that break down large matrices into blocks that fit into the SRAM, are
+what makes the Flash-Attention mechanism more efficient and faster than the normal attention mechanism. Indeed,
+with flash-attention we can have a $O(n)$ complexity in memory, which is faster than the $O(n^2)$ complexity of the self-attention mechanism
+and we have a speedup in the computation of the attention mechanism.
 
 \newpage
 
