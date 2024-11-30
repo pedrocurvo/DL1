@@ -520,35 +520,39 @@ class GPT(nn.Module):
                 probs = torch.argmax(logits, dim=-1, keepdim=True)
                 # optionally only consider top-k logits for sampling. 
                 if top_k is not None:
-                    top_k_values, top_k_indices = torch.topk(logits, k=top_k, dim=-1)
-                    probs = torch.zeros_like(probs).scatter_(-1, top_k_indices, top_k_values)
-                    probs /= probs.sum(dim=-1, keepdim=True)
+                    # Top-K sampling
+                    # Filter out top-k most likely tokens
+                    top_k = min(top_k, logits.size(-1))
+                    v, _ = torch.topk(logits, top_k)
+                    
+                    # Create a mask to zero out logits below the top-k threshold
+                    logits[logits < v[:, [-1]]] = float('-inf')
 
                 # optionally apply top-p sampling
                 if top_p is not None:
-                    sorted_probs, sorted_indices = torch.sort(probs, descending=True, dim=-1)
-                    cumulative_probs = torch.cumsum(sorted_probs, dim=-1)
+                    # Top-P (Nucleus) sampling
+                    # Sort logits in descending order
+                    sorted_logits, sorted_indices = torch.sort(logits, descending=True)
+                    
+                    # Apply softmax to get probabilities
+                    cumulative_probs = torch.cumsum(torch.nn.functional.softmax(sorted_logits, dim=-1), dim=-1)
+                    
+                    # Create a mask for tokens to keep (cumulative probability <= top_p)
+                    keep_mask = cumulative_probs <= top_p
+                    
+                    # Ensure at least one token is kept
+                    keep_mask[..., 0] = True
+                    
+                    # Shift the mask to use as an index for original logits
+                    keep_mask = keep_mask.scatter(1, sorted_indices, keep_mask)
+                    
+                    # Zero out logits for tokens not in the top-p set
+                    logits[~keep_mask] = float('-inf')
 
-                    # Mask tokens exceeding top-p cumulative probability
-                    sorted_probs = sorted_probs.float()
-                    sorted_probs[cumulative_probs > top_p] = 0
-                    sorted_probs /= sorted_probs.sum(dim=-1, keepdim=True)
-
-                    # Ensure that we dont have NaNs or Infs
-                    if torch.isnan(sorted_probs).any() or torch.isinf(sorted_probs).any():
-                        sorted_probs = torch.nan_to_num(sorted_probs, nan=1e-10, posinf=1e-10, neginf=1e-10)
-
-                    # Scatter back to original order
-                    probs = torch.zeros_like(probs, dtype=torch.float32).scatter_(-1, sorted_indices, sorted_probs)
-
-                # Ensure probs contains valid values
-                probs = torch.clamp(probs, min=1e-10)  # Avoid NaNs or negative probabilities
-
-                # Alternatively, check for NaNs or Infs and replace them
-                if torch.isnan(probs).any() or torch.isinf(probs).any():
-                    probs = torch.nan_to_num(probs, nan=1e-10, posinf=1e-10, neginf=1e-10)
-
-                # Sample from the probability distribution
+                # Apply softmax to get probabilities 
+                probs = torch.nn.functional.softmax(logits, dim=-1)
+                
+                # Sample the next token
                 idx_next = torch.multinomial(probs, num_samples=1)
             
             # append sampled index to the running sequence and continue
