@@ -42,7 +42,7 @@ class RMSNorm(nn.Module):
     def forward(self, x):
         # Compute the norm of the input tensor and divide by the norm
         # Scale the normalized tensor by the learned weight parameter
-        # Root Mean Square (RMS) normalization
+        # Root Mean Square normalization
         rmw = torch.sqrt(torch.mean(x ** 2, dim=-1, keepdim=True) + self.eps)
         output =  x / rmw * self.weight
         return output
@@ -123,11 +123,11 @@ class CausalSelfAttention(nn.Module):
         pos_emb[..., 0::2] = torch.sin(freqs)
         pos_emb[..., 1::2] = torch.cos(freqs)
         
-        # Split pos into sin and cos components, repeating each to match xq and xk dimensions
+        # split pos into sin and cos components, repeating each to match xq and xk dimensions
         pos_sin = pos_emb.repeat(batch, num_heads, 1, 1)
         pos_cos = pos_emb.repeat(batch, num_heads, 1, 1)
         
-        # Apply RoPE transformation: pair and rotate dimensions
+        # pair and rotate dimensions
         # Rotate query and key tensors
         xq_rot = xq * pos_cos + torch.cat([-xq[..., 1::2], xq[..., 0::2]], dim=-1) * pos_sin
         xk_rot = xk * pos_cos + torch.cat([-xk[..., 1::2], xk[..., 0::2]], dim=-1) * pos_sin
@@ -156,7 +156,7 @@ class CausalSelfAttention(nn.Module):
         # Mask the calculated attention weights with the mask parameter.
 
         if self.use_flash_attn:
-            mask = self.mask[:, :, :T, :T].to(q.device)  # Ensure the mask is on the correct device
+            mask = self.mask[:, :, :T, :T].to(q.device)  # mask is on the correct device
             attn_output = F.scaled_dot_product_attention(q, k, v, attn_mask=mask, dropout_p=self.config.attn_pdrop)
             y = attn_output
         else:
@@ -171,7 +171,7 @@ class CausalSelfAttention(nn.Module):
             y = att @ v # (B, nh, T, T) x (B, nh, T, hs) -> (B, nh, T, hs)
 
         # combine heads
-        y = y.transpose(1, 2).contiguous().view(B, T, C) # re-assemble all head outputs side by side
+        y = y.transpose(1, 2).contiguous().view(B, T, C)
 
         # output projection
         y = self.resid_dropout(self.c_proj(y))
@@ -516,7 +516,7 @@ class GPT(nn.Module):
                 idx_next = torch.argmax(logits, dim=-1, keepdim=True)
             
             else:
-                # apply softmax to convert logits to (normalized) probabilities
+                # apply softmax to convert logits to probabilities
                 probs = torch.argmax(logits, dim=-1, keepdim=True)
                 # optionally only consider top-k logits for sampling. 
                 if top_k is not None:
@@ -530,29 +530,29 @@ class GPT(nn.Module):
 
                 # optionally apply top-p sampling
                 if top_p is not None:
-                    # Top-P (Nucleus) sampling
-                    # Sort logits in descending order
+                    # Top-P sampling
+                    # logits in descending order
                     sorted_logits, sorted_indices = torch.sort(logits, descending=True)
                     
-                    # Apply softmax to get probabilities
+                    # softmax to get probabilities
                     cumulative_probs = torch.cumsum(torch.nn.functional.softmax(sorted_logits, dim=-1), dim=-1)
                     
-                    # Create a mask for tokens to keep (cumulative probability <= top_p)
+                    # mask for tokens to keep cumulative probability <= top_p
                     keep_mask = cumulative_probs <= top_p
                     
-                    # Ensure at least one token is kept
+                    # at least one token is kept
                     keep_mask[..., 0] = True
                     
                     # Shift the mask to use as an index for original logits
                     keep_mask = keep_mask.scatter(1, sorted_indices, keep_mask)
                     
-                    # Zero out logits for tokens not in the top-p set
+                    # zero out logits for tokens not in the top-p set
                     logits[~keep_mask] = float('-inf')
 
-                # Apply softmax to get probabilities 
+                # softmax to get probabilities 
                 probs = torch.nn.functional.softmax(logits, dim=-1)
                 
-                # Sample the next token
+                # Sample the next token 
                 idx_next = torch.multinomial(probs, num_samples=1)
             
             # append sampled index to the running sequence and continue
