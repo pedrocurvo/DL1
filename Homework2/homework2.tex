@@ -335,7 +335,7 @@ to more orientations. This is, again, showed by the graph above.
     and computational issues, which are worse when $n$ is large (larger sentences), creating bottlenecks.
 
     \item One way to solve this problem is by using some kind of sparse attention mechanism that focus on a subset
-of local or key tokens, instead of a local attention. With this we can reduce the complexity of the self-attention mechanism. For example,
+of local or key tokens, instead of a global attention. With this we can reduce the complexity of the self-attention mechanism. For example,
 the Reformer model \textbf{(Kitaev, N., Kaiser, Ł., \& Levskaya, A. (2020). Reformer: The Efficient Transformer)}
 uses locality-sensitive hashing to achieve a $O(n \log n)$ complexity.
 \end{itemize}
@@ -496,26 +496,33 @@ sequences, for example, in resuming tasks, where we have large documents.
 To test the model on \textbf{Grimms' Fairy Tales} I used some prompts to test scenarios, characters and linguistic patterns:
 
 \begin{itemize}
-    \item \textbf{Prompt:} \textit{'Hansel said to'} 
+    \item \textbf{Prompt:} \textit{'Hansel said to'} \textbf{Temperature:} 0.8
     \item Model: Hansel said to Gretel: 'We shall soon find the way,' but they did not find it. They walked the whole night and all the next day too from morning till evening, but they did not get out of the forest
 \end{itemize}
 
 \begin{itemize}
-    \item \textbf{Prompt:} \textit{'The wolf said to'}
+    \item \textbf{Prompt:} \textit{'The wolf said to'} \textbf{Temperature:} 0.8
     \item Model: The wolf said to the Little Red-Cap, and then he said: 'See, Little Red-Cap, here is a piece
 of cake and a bottle of wine; take them to your grandmother, she is ill
 and weak, and they will do her finger.'
 \end{itemize}
 
 \begin{itemize}
-    \item \textbf{Prompt:} \textit{'There was once'}
+    \item \textbf{Prompt:} \textit{'There was once'} \textbf{Temperature:} 0.8
     \item Model: There was once a man called Frederick: he had a wife whose name was
 Catherine, and they had not long been married. One day Frederick said.
 'Kate! I am going to work in the fields'
 \end{itemize}
 
 \begin{itemize}
-    \item \textbf{Prompt:} \textit{'Rapunzel had'}
+    \item \textbf{Prompt:} \textit{'There was once'} \textbf{Temperature:} 0.8 \textbf{Do Sample:} True \textbf{Top-p:} 0.7
+    \item Model: There was once upon a time a king who had a great forest near his
+    palace, full of all kinds of wild animals. One day he sent out a
+    huntsman to shoot him a roe, but he did not come back.
+\end{itemize}
+
+\begin{itemize}
+    \item \textbf{Prompt:} \textit{'Rapunzel had'} \textbf{Temperature:} 1.0
     \item Model: Rapunzel had magnificent long hair, fine as spun gold, and when she
 heard the voice of the enchantress she unfastened her braided tresses
 \end{itemize}
