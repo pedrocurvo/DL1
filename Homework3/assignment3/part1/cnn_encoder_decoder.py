@@ -38,7 +38,22 @@ class CNNEncoder(nn.Module):
         #######################
         # PUT YOUR CODE HERE  #
         #######################
-        raise NotImplementedError
+        self.net = nn.Sequential(
+            nn.Conv2d(num_input_channels, num_filters, kernel_size=3, padding=1, stride=2),  # 28x28 => 14x14
+            nn.GELU(),
+            nn.Conv2d(num_filters, num_filters, kernel_size=3, padding=1),  # 14x14 => 14x14
+            nn.GELU(),
+            nn.Conv2d(num_filters, 2*num_filters, kernel_size=3, padding=1, stride=2),  # 14x14 => 7x7
+            nn.GELU(),
+            nn.Conv2d(2*num_filters, 2*num_filters, kernel_size=3, padding=1),  # 7x7 => 7x7
+            nn.GELU(),
+            nn.Conv2d(2*num_filters, 2*num_filters, kernel_size=3, padding=1, stride=2),  # 7x7 => 4x4
+            nn.GELU(),
+            nn.Flatten(),  # Image grid to single feature vector
+        )
+
+        self.fc_mean = nn.Linear(2 * 4 * 4 * num_filters, z_dim)  # Linear for mean
+        self.fc_log_std = nn.Linear(2 * 4 * 4 * num_filters, z_dim)  # Linear for log_std
         #######################
         # END OF YOUR CODE    #
         #######################
@@ -56,9 +71,9 @@ class CNNEncoder(nn.Module):
         #######################
         # PUT YOUR CODE HERE  #
         #######################
-        mean = None
-        log_std = None
-        raise NotImplementedError
+        x = self.net(x)
+        mean = self.fc_mean(x)
+        log_std = self.fc_log_std(x)
         #######################
         # END OF YOUR CODE    #
         #######################
@@ -84,7 +99,20 @@ class CNNDecoder(nn.Module):
         #######################
         # PUT YOUR CODE HERE  #
         #######################
-        raise NotImplementedError
+        self.fc = nn.Linear(z_dim, 2 * 4 * 4 * num_filters)  # Linear layer to map z to 4x4x2*num_filters
+
+        self.net = nn.Sequential(
+            nn.ConvTranspose2d(2*num_filters, 2*num_filters, kernel_size=3, padding=1, stride=2, output_padding=1),  # 4x4 => 7x7
+            nn.GELU(),
+            nn.Conv2d(2*num_filters, 2*num_filters, kernel_size=3, padding=1),  # 7x7 => 7x7
+            nn.GELU(),
+            nn.ConvTranspose2d(2*num_filters, num_filters, kernel_size=3, padding=1, stride=2, output_padding=1),  # 7x7 => 14x14
+            nn.GELU(),
+            nn.Conv2d(num_filters, num_filters, kernel_size=3, padding=1),  # 14x14 => 14x14
+            nn.GELU(),
+            nn.ConvTranspose2d(num_filters, num_input_channels, kernel_size=3, padding=1, stride=2, output_padding=1),  # 14x14 => 28x28
+            nn.Tanh(),  # Tanh to map to [-1, 1]
+        )
         #######################
         # END OF YOUR CODE    #
         #######################
@@ -102,8 +130,9 @@ class CNNDecoder(nn.Module):
         #######################
         # PUT YOUR CODE HERE  #
         #######################
-        x = None
-        raise NotImplementedError
+        x = self.fc(z)
+        x = x.view(x.size(0), -1, 4, 4)  # Reshape to [B, channels, 4, 4]
+        x = self.net(x)
         #######################
         # END OF YOUR CODE    #
         #######################
