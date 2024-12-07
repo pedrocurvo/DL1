@@ -67,7 +67,7 @@ class CNNEncoder(nn.Module):
             log_std - Tensor of shape [B,z_dim] representing the predicted log standard deviation
                       of the latent distributions.
         """
-        x = x.float() / 15 * 2.0 - 1.0  # Move images between -1 and 1
+        x = x.float() / 15.0 * 2.0 - 1.0  # Move images between -1 and 1
         #######################
         # PUT YOUR CODE HERE  #
         #######################
@@ -102,7 +102,7 @@ class CNNDecoder(nn.Module):
         self.fc = nn.Linear(z_dim, 2 * 4 * 4 * num_filters)  # Linear layer to map z to 4x4x2*num_filters
 
         self.net = nn.Sequential(
-            nn.ConvTranspose2d(2*num_filters, 2*num_filters, kernel_size=3, padding=1, stride=2, output_padding=1),  # 4x4 => 7x7
+            nn.ConvTranspose2d(2*num_filters, 2*num_filters, kernel_size=3, padding=1, stride=2, output_padding=0),  # 4x4 => 7x7
             nn.GELU(),
             nn.Conv2d(2*num_filters, 2*num_filters, kernel_size=3, padding=1),  # 7x7 => 7x7
             nn.GELU(),
