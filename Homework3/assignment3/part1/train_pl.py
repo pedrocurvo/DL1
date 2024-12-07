@@ -103,9 +103,16 @@ class VAE(pl.LightningModule):
         #######################
         # PUT YOUR CODE HERE  #
         #######################
+        # Sample random z latent vectors
         z = torch.randn(batch_size, self.hparams.z_dim).to(self.device)
-        x_samples = self.decoder(z)
-        x_samples = (x_samples + 1) / 2 * 15.0
+
+        # Decode
+        recon_logits = self.decoder(z)
+
+        # Sample pixel values from the output distribution
+        probs = F.softmax(recon_logits, dim=1)
+        x_samples = torch.multinomial(probs.permute(0, 2, 3, 1).contiguous().view(-1, 16), 1)
+        x_samples = x_samples.view(batch_size, *recon_logits.shape[2:]).float() / 15.0 * 2.0 - 1.0
         #######################
         # END OF YOUR CODE    #
         #######################
@@ -174,6 +181,8 @@ class GenerateCallback(pl.Callback):
         """
         samples = pl_module.sample(self.batch_size)
         samples = samples.float() / 15  # Converting 4-bit images to values between 0 and 1
+        if samples.dim() == 3:  # If the input tensor has shape [B, H, W]
+            samples = samples.unsqueeze(1)  # Add a channel dimension to make it [B, 1, H, W]
         grid = make_grid(samples, nrow=8, normalize=True, value_range=(0, 1), pad_value=0.5)
         grid = grid.detach().cpu()
         trainer.logger.experiment.add_image("Samples", grid, global_step=epoch)
