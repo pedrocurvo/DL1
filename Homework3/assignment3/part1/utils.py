@@ -59,7 +59,7 @@ def KLD(mean, log_std):
     # PUT YOUR CODE HERE  #
     #######################
     std = torch.exp(log_std)
-    KLD = 0.5 * (mean**2 + torch.exp(2*log_std) - 2*log_std - 1).sum(dim=-1)
+    KLD = 0.5 * (mean**2 + std**2 - 2 * log_std - 1).sum(dim=-1)
     #######################
     # END OF YOUR CODE    #
     #######################
@@ -78,8 +78,8 @@ def elbo_to_bpd(elbo, img_shape):
     #######################
     # PUT YOUR CODE HERE  #
     #######################
-    n_pixels = np.prod(img_shape[1:])
-    bpd = elbo / (np.log(2) * n_pixels)
+    n_pixels = torch.tensor(img_shape[1:]).prod().item()
+    bpd = elbo / (torch.log(torch.tensor(2.0)) * n_pixels)
     #######################
     # END OF YOUR CODE    #
     #######################
@@ -110,16 +110,23 @@ def visualize_manifold(decoder, grid_size=20):
     #######################
     # PUT YOUR CODE HERE  #
     #######################
+    # Generate percentiles
     linspace = torch.linspace(0.5 / grid_size, (grid_size - 0.5) / grid_size, grid_size)
-    grid_x, grid_y = torch.meshgrid(linspace, linspace)
+    grid_x, grid_y = torch.meshgrid(linspace, linspace, indexing='ij')  # Explicit indexing for clarity
 
-    z = torch.stack([grid_x.flatten(), grid_y.flatten()], dim=1)
+    # Convert percentiles to latent space samples
+    normal_dist = torch.distributions.Normal(0, 1)
+    z = torch.stack([
+        normal_dist.icdf(grid_x.flatten()),
+        normal_dist.icdf(grid_y.flatten())
+    ], dim=1).to(decoder.device)
 
-    z_grid = z_grid.to(decoder.device)
+    # Decode latents into images
+    imgs = decoder(z)  # Assuming decoder returns normalized images
+    imgs = torch.sigmoid(imgs)  # Ensure images are in [0, 1] range
 
-    imgs = decoder(z_grid)
-
-    img_grid = make_grid(imgs, nrow=grid_size, normalize=True, scale_each=True)
+    # Create a grid of images
+    img_grid = make_grid(imgs, nrow=grid_size, normalize=True, value_range=(0, 1), pad_value=0.5)
     #######################
     # END OF YOUR CODE    #
     #######################
