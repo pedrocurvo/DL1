@@ -35,8 +35,8 @@ def sample_reparameterize(mean, std):
     #######################
     # PUT YOUR CODE HERE  #
     #######################
-    z = None
-    raise NotImplementedError
+    epsilon = torch.randn_like(std)
+    z = mean + std * epsilon # reparameterization trick
     #######################
     # END OF YOUR CODE    #
     #######################
@@ -58,8 +58,8 @@ def KLD(mean, log_std):
     #######################
     # PUT YOUR CODE HERE  #
     #######################
-    KLD = None
-    raise NotImplementedError
+    std = torch.exp(log_std)
+    KLD = 0.5 * (mean**2 + std**2 - 2*log_std - 1).sum(dim=-1)
     #######################
     # END OF YOUR CODE    #
     #######################
@@ -78,8 +78,8 @@ def elbo_to_bpd(elbo, img_shape):
     #######################
     # PUT YOUR CODE HERE  #
     #######################
-    bpd = None
-    raise NotImplementedError
+    n_pixels = np.prod(img_shape[1:])
+    bpd = elbo / (np.log(2) * n_pixels)
     #######################
     # END OF YOUR CODE    #
     #######################
@@ -110,8 +110,16 @@ def visualize_manifold(decoder, grid_size=20):
     #######################
     # PUT YOUR CODE HERE  #
     #######################
-    img_grid = None
-    raise NotImplementedError
+    linspace = torch.linspace(0.5 / grid_size, (grid_size - 0.5) / grid_size, grid_size)
+    grid_x, grid_y = torch.meshgrid(linspace, linspace)
+
+    z = torch.stack([grid_x.flatten(), grid_y.flatten()], dim=1)
+
+    z_grid = z_grid.to(decoder.device)
+
+    imgs = decoder(z_grid)
+
+    img_grid = make_grid(imgs, nrow=grid_size, normalize=True, scale_each=True)
     #######################
     # END OF YOUR CODE    #
     #######################
