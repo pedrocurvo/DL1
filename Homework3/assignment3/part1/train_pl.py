@@ -70,9 +70,6 @@ class VAE(pl.LightningModule):
         #######################
         # PUT YOUR CODE HERE  #
         #######################
-        imgs = imgs.float() / 15.0 * 2.0 - 1.0
-
-        # Encode
         mean, log_std = self.encoder(imgs)
 
         # Sample
@@ -81,9 +78,18 @@ class VAE(pl.LightningModule):
 
         # Decode
         decoded_imgs = self.decoder(z)
+
+        # Normalize target images to [-1, 1]
+        imgs_normalized = imgs.float() / 15.0 * 2.0 - 1.0
+
+        # Rescale decoder output to logits for 4-bit (16 classes)
+        decoded_logits = ((decoded_imgs + 1.0) / 2.0 * 15.0).view(-1, 16)
+
+        # Prepare target images as integer class indices
+        imgs_int = imgs.view(-1)  # Target tensor flattened
         
-        imgs_int = ((imgs + 1.0) / 2.0 * 15.0).long()
-        L_rec = F.cross_entropy(decoded_imgs.view(-1, 16), imgs_int.view(-1), reduction='sum') / imgs.size(0)
+        L_rec = F.cross_entropy(decoded_logits, imgs_int, reduction='sum') / imgs.size(0)
+
         L_reg = KLD(mean, log_std).mean()
         bpd = elbo_to_bpd(L_rec + L_reg, imgs.shape)
         #######################
@@ -107,7 +113,7 @@ class VAE(pl.LightningModule):
         z = torch.randn(batch_size, self.hparams.z_dim).to(self.device)
 
         # Decode
-        recon_logits = self.decoder(z)
+        recon_logits = self.decoder(z) # This as [-1, 1] range
 
         # Sample pixel values from the output distribution
         probs = F.softmax(recon_logits, dim=1)
