@@ -97,9 +97,11 @@ def test_attack(model, test_loader, attack_function, attack_args):
         
         if attack_function == FGSM: 
             # Get the correct gradients wrt the data
+            data_grad = data.grad.data
             # Perturb the data using the FGSM attack
+            perturbed_data = fgsm_attack(data, data_grad, epsilon = attack_args[EPSILON])
             # Re-classify the perturbed image
-            raise NotImplementedError()
+            output = model(perturbed_data)
 
         elif attack_function == PGD:
             # Get the perturbed data using the PGD attack
