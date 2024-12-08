@@ -17,10 +17,10 @@ module load Anaconda3/2023.07-2
 # Activate your environment
 source activate dl2024
 # Run your code
-srun python -u train.py --data_dir $TMPDIR/ --pretrained --visualise --train_strats STANDARD  
-srun python -u train.py --data_dir $TMPDIR/ --visualise --train_strats FGSM
-srun python -u train.py --data_dir $TMPDIR/ --visualise --train_strats FGSM --test_crossover_defense
-srun python -u train.py --data_dir $TMPDIR/ --pretrained --augmentations --visualise --train_strats FGSM
-srun python -u train.py --data_dir $TMPDIR/ --pretrained --augmentations --visualise --train_strats FGSM --test_crossover_defense
+srun python -u train.py --pretrained --visualise --train_strats standard
+srun python -u train.py --visualise --train_strats fgsm
+srun python -u train.py --visualise --train_strats fgsm --test_crossover_defense
+srun python -u train.py --pretrained --augmentations --visualise --train_strats fgsm
+srun python -u train.py --pretrained --augmentations --visualise --train_strats fgsm --test_crossover_defense
 
 
