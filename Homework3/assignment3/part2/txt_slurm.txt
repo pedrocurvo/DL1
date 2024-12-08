@@ -44,6 +44,8 @@ Attack fgsm, args: {'alpha': 0.5, 'epsilon': 0.1}
 Test Accuracy = 1025 / 2500 = 0.41
 Attack pgd, args: {'alpha': 2, 'epsilon': 0.01, 'num_iter': 10}
 Test Accuracy = 1057 / 2500 = 0.4228
+
+
 Arguments:
 batch_size: 64
 valid_ratio: 0.75
@@ -193,6 +195,8 @@ Accuracy of the network on the test set: 62 %
 Testing adversarial attacks
 Attack fgsm, args: {'alpha': 0.5, 'epsilon': 0.1}
 Test Accuracy = 646 / 2500 = 0.2584
+
+
 Arguments:
 batch_size: 64
 valid_ratio: 0.75
@@ -344,6 +348,8 @@ Attack fgsm, args: {'alpha': 0.5, 'epsilon': 0.1}
 Test Accuracy = 580 / 2500 = 0.232
 Attack pgd, args: {'alpha': 2, 'epsilon': 0.01, 'num_iter': 10}
 Test Accuracy = 613 / 2500 = 0.2452
+
+
 Arguments:
 batch_size: 64
 valid_ratio: 0.75
@@ -495,6 +501,8 @@ Accuracy of the network on the test set: 88 %
 Testing adversarial attacks
 Attack fgsm, args: {'alpha': 0.5, 'epsilon': 0.1}
 Test Accuracy = 1247 / 2500 = 0.4988
+
+
 Arguments:
 batch_size: 64
 valid_ratio: 0.75
