@@ -73,25 +73,23 @@ class VAE(pl.LightningModule):
         mean, log_std = self.encoder(imgs)
 
         # Sample
-        std = torch.exp(0.5 * log_std)
+        std = torch.exp(log_std)
         z = sample_reparameterize(mean, std)
 
         # Decode
         decoded_imgs = self.decoder(z)
 
-        # Normalize target images to [-1, 1]
-        imgs_normalized = imgs.float() / 15.0 * 2.0 - 1.0
-
         # Rescale decoder output to logits for 4-bit (16 classes)
-        decoded_logits = ((decoded_imgs + 1.0) / 2.0 * 15.0).view(-1, 16)
+        decoded_logits = decoded_imgs.permute(0, 2, 3, 1).reshape(-1, 16)
 
         # Prepare target images as integer class indices
-        imgs_int = imgs.view(-1)  # Target tensor flattened
+        imgs_int = imgs.permute(0, 2, 3, 1).view(-1).long()
         
-        L_rec = F.cross_entropy(decoded_logits, imgs_int, reduction='sum') / imgs.size(0)
+        L_rec = F.cross_entropy(decoded_logits, imgs_int, reduction='sum') / imgs.size(0) 
 
         L_reg = KLD(mean, log_std).mean()
-        bpd = elbo_to_bpd(L_rec + L_reg, imgs.shape)
+        loss = L_rec + L_reg
+        bpd = elbo_to_bpd(loss, imgs.shape)
         #######################
         # END OF YOUR CODE    #
         #######################
@@ -116,11 +114,21 @@ class VAE(pl.LightningModule):
         recon_logits = self.decoder(z) # This as [-1, 1] range
 
         # Sample pixel values from the output distribution
-        probs = F.softmax(recon_logits, dim=1)
-        probs_flat = probs.view(batch_size, -1, 16).view(-1, 16)
-        x_samples = torch.multinomial(probs_flat, 1)
-        x_samples = x_samples.view(batch_size, *recon_logits.shape[2:]).float()
-        x_samples = x_samples.unsqueeze(1)  # Add channel dimension
+        # Sample pixel values from the output distribution
+        # probs = F.softmax(recon_logits, dim=1)
+        # probs_reshaped = probs.permute(0, 2, 3, 1).reshape(-1, 16)
+        # x_samples = torch.multinomial(probs_reshaped, 1)
+        # x_samples = x_samples.view(batch_size, recon_logits.shape[2], recon_logits.shape[3]).float()
+        # x_samples = x_samples.unsqueeze(1)  # Add channel dimension
+        # Sample pixel values preserving spatial structure
+        x_samples = torch.zeros(batch_size, 1, recon_logits.shape[2], recon_logits.shape[3], 
+                                device=self.device)
+        
+        for b in range(batch_size):
+            for h in range(recon_logits.shape[2]):
+                for w in range(recon_logits.shape[3]):
+                    pixel_probs = F.softmax(recon_logits[b, :, h, w], dim=0)
+                    x_samples[b, 0, h, w] = torch.multinomial(pixel_probs, 1).float()
         #######################
         # END OF YOUR CODE    #
         #######################
@@ -188,7 +196,7 @@ class GenerateCallback(pl.Callback):
             epoch - The epoch number to use for TensorBoard logging and saving of the files.
         """
         samples = pl_module.sample(self.batch_size)
-        samples = samples.float() / 15  # Converting 4-bit images to values between 0 and 1
+        samples = samples.float() / 15.0  # Converting 4-bit images to values between 0 and 1
         grid = make_grid(samples, nrow=8, normalize=True, value_range=(0, 1), pad_value=0.5)
         grid = grid.detach().cpu()
         trainer.logger.experiment.add_image("Samples", grid, global_step=epoch)
