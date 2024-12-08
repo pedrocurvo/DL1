@@ -30,7 +30,14 @@ def fgsm_attack(image, data_grad, epsilon = 0.25):
     # Get the sign of the data gradient (element-wise)
     # Create the perturbed image, scaled by epsilon
     # Make sure values stay within valid range
-    raise NotImplementedError()
+    # Extract the sign of the data gradient
+    sign_data_grad = data_grad.sign()
+
+    # Apply the perturbation to the image
+    perturbed_image = image + epsilon * sign_data_grad
+
+    # Clip the perturbed image to the valid range
+    perturbed_image = torch.clamp(perturbed_image, 0, 1)
     return perturbed_image
 
 
