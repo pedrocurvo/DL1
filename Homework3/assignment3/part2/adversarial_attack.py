@@ -48,12 +48,21 @@ def fgsm_loss(model, criterion, inputs, labels, defense_args, return_preds = Tru
     inputs.requires_grad = True
     # Implement the FGSM attack
     # Calculate the loss for the original image
+    original_outputs = model(inputs)
+    clean_loss = criterion(original_outputs, labels)
+    model.zero_grad()
+    clean_loss.backward(retain_graph=True)
+    data_grad = inputs.grad.data
+    perturbed_inputs = fgsm_attack(inputs, data_grad, epsilon)
+    
+    perturbed_outputs = model(perturbed_inputs)
+    adversarial_loss = criterion(perturbed_outputs, labels)
+    loss = (1 - alpha) * adversarial_loss + alpha * clean_loss
     # Calculate the perturbation
     # Calculate the loss for the perturbed image
     # Combine the two losses
     # Hint: the inputs are used in two different forward passes,
     # so you need to make sure those don't clash
-    raise NotImplementedError()
     if return_preds:
         _, preds = torch.max(original_outputs, 1)
         return loss, preds
