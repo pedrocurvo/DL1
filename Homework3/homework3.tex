@@ -307,21 +307,109 @@ I believe this is the case, since the regularization loss keeps increasing.
 
 \subsection*{2.1}
 
-\textcolor{red}{TODO}
+\textcolor{red}{Report the accuracies and configurations I used}
+
+\begin{itemize}
+    \item \textbf{i)} Adding a random perturbation of size $\epsilon$ does not target the specific vulnerability of the model,
+    but rather adds noise to the input data. FGSM, on the other hand, is a targeted attack, since it uses the gradient of the
+    loss function to find the direction in which the input data should be perturbed to maximize the loss for a given input. 
+    This targeted attack is more effective at fooling the model than adding random noise. It also ensures that the perturbation
+    aligns with the model decision boundary, making it more likely to fool the model. Random noise, on the other hand, is unlikely
+    to align with the decision boundary, making it less effective at fooling the model.
+
+    \item \textbf{ii)} This phenomenon occurs because both models A and B, despite being trained on different subsets of the
+    data, have learned similar decision boundaries. This means that the adversarial examples that fool model A are also likely
+    to fool model B. This is because the adversarial examples are designed to exploit the weaknesses in the model's decision
+    boundary, which are similar for both models. Neural networks trained on the same task often learn similar decision boundaries,
+    leading to shared vulnerabilities to adversarial examples. This is why adversarial examples generated for exploiting one
+    model's weaknesses are often effective at fooling other models trained on the same task.
+
+    \item \textbf{iii)} Models trained with data augmentation are more robust to adversarial examples because data augmentation
+    introduces noise and perturbations to the training data, which makes the model more robust to small perturbations in the input.
+    When the model is trained with augmented data, such as adding noise, rotations, or translations to the training images,
+    the model learns to generalize better and consequently the model's decision boundary becomes smoother and less sensitive
+    to small, targeted perturbations. This makes it harder for an attacker to generate adversarial examples that fool the model.
+\end{itemize}
 
 \subsection*{2.2}
 
-\textcolor{red}{TODO}
+\textcolor{red}{Report Accuracies with and without attacks of the models with and without defense}
+
+Without defense the model focuses solely on minimizing the loss on clean data, leading to high accuracy on natural,
+unperturbed inputs. However, it remains highly vulnerable to adversarial attacks, as it lacks mechanisms to handle small,
+targeted perturbations. 
+
+With defense, the model gains robustness to adversarial attacks by incorporating adversarial training. With this,
+the model learns smoother decision boundaries and learns how to adapt to small perturbations in the input data. This
+can reduce its accuracy on clean data because the model shifts its focus from purely optimizing performance on the clean dataset
+to balancing performance on both clean and adversarial examples. This can lead to a decrease in accuracy on clean data.
+Hence, the models with defense often sacrifice better generalization on clean data to gain robustness to adversarial attacks.
+
+This trade-off occurs because neural networks have \textbf{limited capacity} and must allocate resources to learn to generalize.
+Allocating some of this capacity to handle adversarial perturbations reduces the focus on patterns in clean data, leading to
+a decrease in accuracy on clean data.
+Besides this, defending against adversarial attacks often involves smoothing or reshaping decision boundaries to make them robust
+to perturbations, However, this might \textbf{oversimplify the boundary}, causing the model to misclassify some clean data points.
+During adversarial training, it might also be possible that the model might overfit to specific types of adversarial perturbations,
+as the FGSM, reducing the accuracy on clean data.
+
 
 \subsection*{2.3}
 
-\textcolor{red}{TODO}
+\subsubsection*{i)}
 
+\textcolor{red}{Report the accuracies maybe?}
 
+Comparing adversarial loss and adding adversarial examples to the batch: 
 
+\begin{itemize}
+    \item \textbf{Adversarial loss}: When using an adversarial loss (as in the loss function that incorporates adversarial examples
+    into the objective function), the adversarial perturbation is typically added directly to the loss term, which blends
+    the clean and adversarial gradients in each training step, allowing the model to learn from adversarial examples
+    during the forward pass while still using the original input for calculating the primary loss. It has the pros of
+    being more direct and efficient as it integrates adversarial examples into the loss function itself and isolates
+    the adversarial perturbation from the clean data by using a separate loss term for each, which might prevent the model
+    from overfitting to the adversarial perturbations since the loss landscape is a sum of the clean and adversarial losses, 
+    hence by oversmoothing one we might not oversmooth the other.
+    However, it relies on modifying the loss function, which might require more complex implementation and tuning for the training. 
 
+    \item \textbf{Adding adversarial examples to the batch}: In this approach, the adversarial examples are explicitly
+    generated and added to the batch during training, along with the original clean and samples. This results in the model
+    training on a larger batch that contains both clean and adversarial examples, forcing the model to correctly classify
+    both types of examples. It has the pros of the model seeing both types of inputs (clean and adversarial) in each
+    iteration, increasing robustness. It has the cons of an increasing computational cost, because we are increasing
+    the batch size. Besides that, since we are now using the same loss function for both clean and adversarial examples,
+    the model might overfit to the adversarial examples leading to a decrease in accuracy on clean data or oversmoothing
+    the loss landscape (which now is just one overall), which might hurt the model's performance on clean data.
+\end{itemize}
 
+\textbf{Difference:} The key difference is that the adversarial loss modifies the optimization process directly by changing the objective function, whereas adding adversarial examples to the batch increases the diversity of the training data. Both approaches encourage the model to become more robust to adversarial perturbations, but they do so in different ways.
 
+\textbf{Conditions for Alignment:} These two methods may align when the adversarial loss function effectively integrates perturbations in a manner similar to how adversarial examples are added to the batch. Both would encourage learning from both clean and adversarial inputs.
+
+\textbf{Conditions for Divergence:} They could diverge in scenarios where the adversarial loss focuses more on optimizing the network’s response to perturbations, while adding adversarial examples to the batch gives the model a broader exposure to such attacks without necessarily optimizing its response to them as directly. Adversarial loss might be more efficient, while batch augmentation might require more computation.
+
+\subsubsection*{ii)}
+
+One advantage of the FGSM is the \textbf{speed}. FGSM is a single-step attack that computes the gradient once and adds a
+small perturbation based on that gradient. This makes FGSM very fast and computationally efficient compared to iterative attacks.
+One disadvantage is that is \textbf{less Effective}. While it's fast, FGSM generally leads to more noticeable perturbations
+because it only takes a single step, and the model is more likely to recognize the pattern of the perturbation.
+
+The PGD has the advantage of \textbf{robustness}. PGD performs an iterative process, where it repeatedly computes small
+gradient-based steps and projects the perturbed data back within the allowable epsilon ball. This iterative approach
+allows PGD to find more effective adversarial examples, which are often less perceptible to human observers and harder
+for the model to detect. It has the disadvantage of being \textbf{slower}. Since PGD involves multiple iterations, it is
+computationally expensive and slower compared to FGSM.
+
+The overall trade-off between FGSM and PGD depends on the specific use case and requirements, that is, \textbf{Speed vs Robustness},
+since FGSM is faster and more lightweight, making it ideal for quick attacks where computational cost is a concern.
+However, it might not be as effective as PGD in creating adversarial examples that lead to model misclassification.
+PGD, on the other hand, is more computationally expensive but is more powerful and effective in creating subtle
+adversarial examples that are harder for the model to classify correctly. It also depends on the final use case, that is,
+if speed and efficiency are the primary goals, FGSM is a better option. However, if the goal is to create strong
+adversarial examples that are more likely to fool a robust model, PGD is a better choice despite its higher
+computational cost.
 
 
 
