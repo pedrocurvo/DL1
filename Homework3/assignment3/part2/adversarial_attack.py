@@ -139,8 +139,10 @@ def test_attack(model, test_loader, attack_function, attack_args):
 
         elif attack_function == PGD:
             # Get the perturbed data using the PGD attack
+            data_grad = data.grad.data
+            perturbed_data = pgd_attack(model, data, target, criterion, attack_args)
             # Re-classify the perturbed image
-            raise NotImplementedError()
+            output = model(perturbed_data)
         else:
             print(f"Unknown attack {attack_function}")
 
