@@ -115,20 +115,20 @@ class VAE(pl.LightningModule):
 
         # Sample pixel values from the output distribution
         # Sample pixel values from the output distribution
-        # probs = F.softmax(recon_logits, dim=1)
-        # probs_reshaped = probs.permute(0, 2, 3, 1).reshape(-1, 16)
-        # x_samples = torch.multinomial(probs_reshaped, 1)
-        # x_samples = x_samples.view(batch_size, recon_logits.shape[2], recon_logits.shape[3]).float()
-        # x_samples = x_samples.unsqueeze(1)  # Add channel dimension
+        probs = F.softmax(recon_logits, dim=1)
+        probs_reshaped = probs.permute(0, 2, 3, 1).reshape(-1, 16)
+        x_samples = torch.multinomial(probs_reshaped, 1)
+        x_samples = x_samples.view(batch_size, recon_logits.shape[2], recon_logits.shape[3]).float()
+        x_samples = x_samples.unsqueeze(1)  # Add channel dimension
         # Sample pixel values preserving spatial structure
-        x_samples = torch.zeros(batch_size, 1, recon_logits.shape[2], recon_logits.shape[3], 
-                                device=self.device)
+        # x_samples = torch.zeros(batch_size, 1, recon_logits.shape[2], recon_logits.shape[3], 
+        #                         device=self.device)
         
-        for b in range(batch_size):
-            for h in range(recon_logits.shape[2]):
-                for w in range(recon_logits.shape[3]):
-                    pixel_probs = F.softmax(recon_logits[b, :, h, w], dim=0)
-                    x_samples[b, 0, h, w] = torch.multinomial(pixel_probs, 1).float()
+        # for b in range(batch_size):
+        #     for h in range(recon_logits.shape[2]):
+        #         for w in range(recon_logits.shape[3]):
+        #             pixel_probs = F.softmax(recon_logits[b, :, h, w], dim=0)
+        #             x_samples[b, 0, h, w] = torch.multinomial(pixel_probs, 1).float()
         #######################
         # END OF YOUR CODE    #
         #######################
