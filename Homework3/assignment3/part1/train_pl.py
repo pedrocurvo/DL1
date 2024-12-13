@@ -77,15 +77,12 @@ class VAE(pl.LightningModule):
         z = sample_reparameterize(mean, std)
 
         # Decode
-        decoded_imgs = self.decoder(z)
-
-        # Rescale decoder output to logits for 4-bit (16 classes)
-        decoded_logits = decoded_imgs.permute(0, 2, 3, 1).reshape(-1, 16)
+        decoded_logits = self.decoder(z)
 
         # Prepare target images as integer class indices
-        imgs_int = imgs.permute(0, 2, 3, 1).view(-1).long()
+        imgs_int = imgs.squeeze(1).long()
         
-        L_rec = F.cross_entropy(decoded_logits, imgs_int, reduction='sum') / imgs.size(0) 
+        L_rec = F.cross_entropy(decoded_logits, imgs_int, reduction='none').sum(dim=[1,2]).mean()
 
         L_reg = KLD(mean, log_std).mean()
         loss = L_rec + L_reg
@@ -114,21 +111,11 @@ class VAE(pl.LightningModule):
         recon_logits = self.decoder(z) # This as [-1, 1] range
 
         # Sample pixel values from the output distribution
-        # Sample pixel values from the output distribution
         probs = F.softmax(recon_logits, dim=1)
         probs_reshaped = probs.permute(0, 2, 3, 1).reshape(-1, 16)
         x_samples = torch.multinomial(probs_reshaped, 1)
         x_samples = x_samples.view(batch_size, recon_logits.shape[2], recon_logits.shape[3]).float()
         x_samples = x_samples.unsqueeze(1)  # Add channel dimension
-        # Sample pixel values preserving spatial structure
-        # x_samples = torch.zeros(batch_size, 1, recon_logits.shape[2], recon_logits.shape[3], 
-        #                         device=self.device)
-        
-        # for b in range(batch_size):
-        #     for h in range(recon_logits.shape[2]):
-        #         for w in range(recon_logits.shape[3]):
-        #             pixel_probs = F.softmax(recon_logits[b, :, h, w], dim=0)
-        #             x_samples[b, 0, h, w] = torch.multinomial(pixel_probs, 1).float()
         #######################
         # END OF YOUR CODE    #
         #######################
