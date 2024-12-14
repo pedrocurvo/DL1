@@ -106,30 +106,40 @@
 To sample an image using the decoder $f_{\theta}$ from the generative model described in this section, we first
 need to sample a latent vector $z$ from the prior distribution $p(z)$. In this case, the prior distribution is a
 standard multivariate Gaussian distribution, so we can sample $z$ from a standard normal distribution, i.e., $z \sim \mathcal{N}(0, I_D)$.
+
 Then, we need to compute the pixel probabilities using the decoder $f_{\theta}$. For this, we pass
 the sampled latent vector $z$ through the decoder $f_{\theta}$, which is a neural network parameterized by $\theta$.
 This will map the latent vector $z$ to the probabilities of the Categorical distribution for each pixel $x_m$ in the image.
 $f_{\theta}(z) \rightarrow (p_1, p_2, ..., p_k)^M$. 
-Here: $p_m = (p_{m1}, p_{m2}, ..., p_{mk})$ are the event probabilities for pixel $m$ being in one of the $k$ categories.
-$M$ is the number of pixels in the image. 
-The, we can sample pixel values $x_n$ for each pixel $m$ by sampling from the Categorical distribution $Cat(x_m | f_{\theta}(z)_m)$.
-Where, $x_m \sim Cat(p_m)$. This will generate the image by sampling each pixel value independently based on the
-probabilities computed by the decoder. 
+Here: $p_m = (p_{m1}, p_{m2}, ..., p_{mk})$ are the event probabilities for pixel $m$ being in one of the $k$ categories. $M$ is the number of pixels in the image. 
+
+Then, we can sample pixel values $x_n$ for each pixel $m$ by sampling from the Categorical distribution $Cat(x_m | f_{\theta}(z)_m)$, where, $x_m \sim Cat(p_m)$. This will generate the image by sampling each pixel value independently based on the probabilities computed by the decoder. 
+
 Finally we combine the pixel values $x_m$ to from the image $x_n$. 
 
 \subsection*{1.2}
 
-Monte Carlo integration with samples from $p(z_n)$ can be used to approximate the expectation of the log-likelihood. 
-However, is inefficient for training VAE models because it requires a large number of samples to accurately estimate the
-log-likelihood. This problem appears because the dimensionality of the latent space $z$ affects the number of samples
-needed to cover the entire latent space adequately. As the dimensionality of the latent space increases, the space
-becomes sparser, and more samples are needed to cover the space to capture the posterior distribution $p(z|x)$, which
-is often highly concentrated in certain regions of the latent space (as shown by the blue contours in Figure 2).
+% Monte Carlo integration with samples from $p(z_n)$ can be used to approximate the expectation of the log-likelihood. 
+% However, is inefficient for training VAE models because it requires a large number of samples to accurately estimate the
+% log-likelihood. This problem appears because the dimensionality of the latent space $z$ affects the number of samples
+% needed to cover the entire latent space adequately. As the dimensionality of the latent space increases, the space
+% becomes sparser, and more samples are needed to cover the space to capture the posterior distribution $p(z|x)$, which
+% is often highly concentrated in certain regions of the latent space (as shown by the blue contours in Figure 2).
 
-This results in a exponentially increasing number of samples needed to accurately estimate the log-likelihood, 
-that is, $L \rightarrow \infty$ as $D \rightarrow \infty$. This makes Monte Carlo integration impractical for high-dimensional
-latent spaces due to the computational cost of sampling a large number of points to estimate the log-likelihood accurately.
-Therefore, other methods are used to estimate the log-likelihood in VAE models. 
+% This results in a exponentially increasing number of samples needed to accurately estimate the log-likelihood, 
+% that is, $L \rightarrow \infty$ as $D \rightarrow \infty$. This makes Monte Carlo integration impractical for high-dimensional
+% latent spaces due to the computational cost of sampling a large number of points to estimate the log-likelihood accurately.
+% Therefore, other methods are used to estimate the log-likelihood in VAE models. 
+
+
+Monte Carlo integration with samples from \( p(z_n) \) can approximate the expectation of the log-likelihood, but it is inefficient for training VAEs because it requires a large number of samples to achieve an accurate estimate. The inefficiency arises from the high-dimensional nature of the latent space \( z \).
+
+As the dimensionality \( D \) of the latent space increases, the prior \( p(z) \) becomes increasingly sparse, and the true posterior \( p(z|x) \) often concentrates in specific regions of the latent space (illustrated by the blue contours in Figure 2). Consequently, a very large number of samples is required to adequately cover the latent space and accurately estimate the log-likelihood. This results in the computational cost scaling exponentially with the dimensionality of \( z \), making it impractical for high-dimensional latent spaces.
+
+For this reason, VAEs use an alternative approach, such as the variational posterior \( q(z|x) \), which focuses sampling in regions of high posterior density, improving efficiency and scalability.
+
+
+
 
 \subsection*{1.3}
 
@@ -250,38 +260,24 @@ samples we use, the more accurate the estimate will be, but it will also increas
 This method can be used for any arbitrary prior and variational posterior distributions, as long as we can sample from the variational distribution
 and compute the log-ratio of the two distributions.
 
-It is also important to note the in this case the sampling is more efficient than the Monte Carlo integration for estimating the log-likelihood.
-Sampling from $p(z_n)$ can lead to a more inefficient sampling because the prior may not capture the actual structure of the data, 
-that is, many samples may be drawn from regions of $z_n$ that do not contribute to $p(x_n | z_n)$, leading to a poor estimate of the log-likelihood,
-as seen in the image, where the prior distribution is a standard normal distribution. However, $p(z_n | x_n)$ is more concentrated
-in specific regions of the latent space (the blue contours in the image).
-However, by sampling from $q_{\theta}(z_n|x_n)$, we can sample from a distribution that is more likely to capture the structure of the data.
-The variational distribution $q_{\theta}(z_n|x_n)$ is designed to be a good approximation of the true posterior $p(z_n|x_n)$,
-Hence, samples drawn from $q_{\theta}(z_n|x_n)$ are more likely to be in regions of the latent space that contribute to the log-likelihood. 
-In other words, the samples drawn from $q_{\theta}(z_n|x_n)$ are concentrated in areas where the posterior is high, which makes tgese
-samples more useful. This lead to a more efficient Monte-Carlo integration because fewer samples are needed to estimate the
-log-likelihood accurately.
+It is important to note that in this case, sampling from \( q_{\theta}(z_n|x_n) \) is significantly more efficient than using Monte Carlo integration to estimate the log-likelihood by sampling directly from \( p(z_n) \). Sampling from the prior distribution \( p(z_n) \) can be inefficient because the prior may not accurately capture the structure of the data. As a result, many samples may be drawn from regions in the latent space \( z_n \) that contribute little or nothing to \( p(x_n | z_n) \), leading to a poor estimate of the log-likelihood. For instance, when \( p(z_n) \) is a standard normal distribution, it spans the entire latent space, whereas the posterior distribution \( p(z_n | x_n) \) is typically concentrated in specific regions of the latent space, as illustrated by the blue contours in the image.
+
+By contrast, sampling from the variational distribution \( q_{\theta}(z_n|x_n) \) is much more effective. This distribution is designed to approximate the true posterior \( p(z_n | x_n) \), and as such, it focuses sampling on the regions of the latent space that are most relevant to the data. Samples drawn from \( q_{\theta}(z_n|x_n) \) are concentrated in areas where the posterior is high, meaning they are more likely to contribute meaningfully to the log-likelihood estimate. This targeted sampling reduces the number of samples needed for accurate estimation, making Monte Carlo integration more efficient. In other words, leveraging \( q_{\theta}(z_n|x_n) \) as the sampling distribution ensures that computational resources are focused on regions of the latent space that matter most, leading to better performance and efficiency.
+
 
 \subsection*{1.7}
 
-When we sample directly from a distribution $q_{\theta}(z_n|x_n)$ to estimate the expectation $\mathbb{E}_{q_{\theta}(z_n|x_n)}[\log p(x_n|z_n)]$,
-the sampling part is non-differentiable with respect to the parameters $\theta$ of the model. This means that
-the gradients with respect to the encoder parameters $\theta$ cannot be computed directly since the sampling operation does
-not provide a smooth path for backpropagation. This is because the sampling operation introduces a discontinuity in the
-computation graph, which makes it impossible to compute the gradients using standard backpropagation.
+When sampling directly from a distribution \( q_{\theta}(z_n|x_n) \) to estimate the expectation \( \mathbb{E}_{q_{\theta}(z_n|x_n)}[\log p(x_n|z_n)] \), the sampling process itself is non-differentiable with respect to the parameters \( \theta \). This is because sampling introduces randomness that disrupts the smooth computation graph required for gradient-based optimization. As a result, the gradients of the loss function with respect to the encoder parameters \( \theta \) cannot be computed directly using standard backpropagation.
 
-The reparameterization trick is a technique used to make the sampling operation differentiable with respect to the parameters $\theta$.
-The trick involves reparameterizing the random variable $z_n$ as a deterministic function of the encoder outputs
-$\mu_{\theta}(x_n)$ and $\sigma_{\theta}(x_n)$, and a noise variable $\epsilon$ sampled from a fixed distribution, such as a standard normal distribution,
-i.e., $\epsilon \sim \mathcal{N}(0, I_D)$. This way the sample $z_n$ can be expressed as:
+The \textbf{reparameterization trick} resolves this issue by making the sampling process differentiable. Instead of sampling \( z_n \) directly from \( \mathcal{N}(\mu_{\theta}(x_n), \Sigma_{\theta}(x_n)) \), the random variable \( z_n \) is reparameterized as a deterministic transformation of a noise variable \( \epsilon \sim \mathcal{N}(0, I_D) \). Specifically, \( z_n \) is expressed as:
 
 \begin{align*}
-    z_n = \mu_{\theta}(x_n) + \sigma_{\theta}(x_n) \odot \epsilon \\
+    z_n = \mu_{\theta}(x_n) + \sigma_{\theta}(x_n) \odot \epsilon
 \end{align*}
+where \( \mu_{\theta}(x_n) \) and \( \sigma_{\theta}(x_n) \) are the encoder outputs parameterized by \( \theta \), and \( \odot \) denotes element-wise multiplication. 
 
-With this, the sampling operation is now differentiable with respect to the parameters $\theta$ of the model. Allowing
-us to compute the gradients of the loss function with respect to the parameters $\theta$ using backpropagation through the
-encoder network. 
+This reformulation ensures that the randomness is isolated in \( \epsilon \), which is independent of \( \theta \). Consequently, the sampling operation becomes differentiable with respect to \( \theta \), allowing gradients of the loss function to propagate through the encoder network via backpropagation.
+
 
 \subsection*{1.8}
 
@@ -291,28 +287,22 @@ encoder network.
     \hline
     \textbf{Test BPD} \\
     \hline
-    1.912 \\
+    0.518 \\
     \hline
     \end{tabular}
 \end{table}
 
 \begin{figure}[H]
     \centering
-    \begin{minipage}{0.45\textwidth}
-        \centering
-        \includegraphics[width=\textwidth]{images/train_bpd.pdf}
-        \caption{Train BPD}
-        \label{fig:train_bpd}
-    \end{minipage}
-    \hfill
-    \begin{minipage}{0.45\textwidth}
-        \centering
-        \includegraphics[width=\textwidth]{images/val_bpd.pdf}
-        \caption{Validation BPD}
-        \label{fig:val_bpd}
-    \end{minipage}
-    \caption{Train and Validation BPD for VAE with latent dim=20}
-    \label{fig:vae_bpd}
+    \includegraphics[width=\textwidth]{images/train_bpd.pdf}
+    \caption{Train BPD for VAE with latent dim=20}
+    \label{fig:train_bpd}
+\end{figure}
+\begin{figure}
+    \centering
+    \includegraphics[width=\textwidth]{images/val_bpd.pdf}
+    \caption{Validation BPD for VAE with latent dim=20}
+    \label{fig:val_bpd}
 \end{figure}
 
 \subsection*{1.9}
@@ -343,11 +333,7 @@ encoder network.
     \label{fig:vae_epochs}
 \end{figure}
 
-By looking at the images generated by the VAE model before training, middle of training, and after training, we can see that
-initially we only have noise in the images, as the model has not learned to generate meaningful images yet. As the model
-trains, the images start to become more recognizable, and we start to see some numbers appearing in the images resembling
-the digits in the MNIST dataset. At the end of training, I see that the images didn't improve much from the middle of training.
-I believe this is the case, since the regularization loss keeps increasing. 
+By looking at the images generated by the VAE model before training, middle of training, and after training, we can see that initially we only have noise in the images, as the model has not learned to generate meaningful images yet. As the model trains, the images start to become more recognizable, and we start to see some numbers appearing in the images resembling the digits in the MNIST dataset, but with some imperfections. At the end of training, I see that the images are more refined and resemble the digits in the MNIST dataset more closely, with fewer imperfections and noise, showing the model has learned to generate more accurate and realistic images as it trains.
 
 \subsection*{1.10}
 
@@ -362,8 +348,9 @@ I believe this is the case, since the regularization loss keeps increasing.
     \label{fig:vae_manifold}
 \end{figure}
 
-In the image above, we observe that points in the latent space that correspond to similar digits form cluster, that is,
-they are close and occupy a region of the plot. That way, the VAE encoded similar digits closer in the latent space.
+The manifold illustrates the latent space learned by the VAE, decoded into MNIST digits. Points in the latent space that correspond to similar digits seemed to be grouped into clusters, occupying distinct regions in the grid. This clustering shows that the VAE encodes similar digits closer together in the latent space. For example, digits that are visually alike are positioned near each other, resulting in smooth transitions between neighboring points.
+
+Some areas contain blurry or incomplete digits, indicating regions where the model struggles to represent the data distribution accurately, specially in the boundaries between different digits.
 
 
 \newpage
@@ -407,25 +394,13 @@ they are close and occupy a region of the plot. That way, the VAE encoded simila
 
 
 \begin{itemize}
-    \item \textbf{i)} Adding a random perturbation of size $\epsilon$ does not target the specific vulnerability of the model,
-    but rather adds noise to the input data. FGSM, on the other hand, is a targeted attack, since it uses the gradient of the
-    loss function to find the direction in which the input data should be perturbed to maximize the loss for a given input. 
-    This targeted attack is more effective at fooling the model than adding random noise. It also ensures that the perturbation
-    aligns with the model decision boundary, making it more likely to fool the model. Random noise, on the other hand, is unlikely
-    to align with the decision boundary, making it less effective at fooling the model.
+    \item \textbf{i)} Adding a random perturbation of size $\epsilon$ does not target the specific vulnerability of the model, but rather adds noise to the input data. FGSM, on the other hand, is a targeted attack, since it uses the gradient of the loss function to find the direction in which the input data should be perturbed to maximize the loss for a given input. This targeted attack is more effective at fooling the model than adding random noise. It also ensures that the perturbation aligns with the model decision boundary, making it more likely to fool the model. Random noise, on the other hand, is unlikely to align with the decision boundary, making it less effective at fooling the model.
 
-    \item \textbf{ii)} This phenomenon occurs because both models A and B, despite being trained on different subsets of the
-    data, have learned similar decision boundaries. This means that the adversarial examples that fool model A are also likely
-    to fool model B. This is because the adversarial examples are designed to exploit the weaknesses in the model's decision
-    boundary, which are similar for both models. Neural networks trained on the same task often learn similar decision boundaries,
-    leading to shared vulnerabilities to adversarial examples. This is why adversarial examples generated for exploiting one
-    model's weaknesses are often effective at fooling other models trained on the same task.
+    \item \textbf{ii)} This phenomenon occurs because both models A and B, despite being trained on different subsets of the data, are optimized for the same task and learn to extract similar features from the data. As a result, they develop similar high-level representations and decision boundaries. Adversarial perturbations exploit weaknesses in these representations by pushing inputs in directions that maximize the loss, perturbation that align with the models' decision boundary (and in this case A and B will have similar decision boundaries). These directions often correspond to vulnerabilities shared by both models due to the shared structure of the data and the underlying task.
 
-    \item \textbf{iii)} Models trained with data augmentation are more robust to adversarial examples because data augmentation
-    introduces noise and perturbations to the training data, which makes the model more robust to small perturbations in the input.
-    When the model is trained with augmented data, such as adding noise, rotations, or translations to the training images,
-    the model learns to generalize better and consequently the model's decision boundary becomes smoother and less sensitive
-    to small, targeted perturbations. This makes it harder for an attacker to generate adversarial examples that fool the model.
+    In high-dimensional spaces, even small perturbations crafted for one model are likely to remain effective on another model because of the inherent similarities in their learned feature spaces and gradients. This shared susceptibility leads to the transferability of adversarial examples between models trained for the same task.
+
+    \item \textbf{iii)} Models trained with data augmentation are more robust to adversarial examples because data augmentation introduces noise and perturbations to the training data, which makes the model more robust to small perturbations in the input. When the model is trained with augmented data, such as adding noise, rotations, or translations to the training images, the model learns to generalize better and consequently the model's decision boundary becomes smoother and less sensitive and reactive to small, targeted perturbations. This makes it harder for an attacker to generate adversarial examples that fool the model.
 \end{itemize}
 
 \subsection*{2.2}
@@ -593,8 +568,6 @@ as the FGSM, reducing the accuracy on clean data.
 
 \subsubsection*{i)}
 
-\textcolor{red}{Report the accuracies maybe?}
-
 Comparing adversarial loss and adding adversarial examples to the batch: 
 
 \begin{itemize}
@@ -622,29 +595,20 @@ Comparing adversarial loss and adding adversarial examples to the batch:
 
 \textbf{Conditions for Alignment:} These two methods may align when the adversarial loss function effectively integrates perturbations in a manner similar to how adversarial examples are added to the batch. Both would encourage learning from both clean and adversarial inputs.
 
-\textbf{Conditions for Divergence:} They could diverge in scenarios where the adversarial loss focuses more on optimizing the network’s response to perturbations, while adding adversarial examples to the batch gives the model a broader exposure to such attacks without necessarily optimizing its response to them as directly. Adversarial loss might be more efficient, while batch augmentation might require more computation.
+\textbf{Conditions for Divergence:} They could diverge in scenarios where the adversarial loss focuses more on optimizing the network's response to perturbations, while adding adversarial examples to the batch gives the model a broader exposure to such attacks without necessarily optimizing its response to them as directly. Adversarial loss is computationally more efficient, while batch augmentation demands greater resources due to increased batch sizes.
 
 \subsubsection*{ii)}
 
-One advantage of the FGSM is the \textbf{speed}. FGSM is a single-step attack that computes the gradient once and adds a
-small perturbation based on that gradient. This makes FGSM very fast and computationally efficient compared to iterative attacks.
-One disadvantage is that is \textbf{less Effective}. While it's fast, FGSM generally leads to more noticeable perturbations
-because it only takes a single step, and the model is more likely to recognize the pattern of the perturbation.
+One advantage of the FGSM is the \textbf{speed}. FGSM is a single-step attack that computes the gradient once and adds a small perturbation based on that gradient, making it very fast and computationally efficient compared to iterative attacks. However, its \textbf{effectiveness} is a limitation. FGSM generally produces more noticeable perturbations because it only takes a single step, and the model is more likely to recognize the pattern of the perturbation.
 
-The PGD has the advantage of \textbf{robustness}. PGD performs an iterative process, where it repeatedly computes small
-gradient-based steps and projects the perturbed data back within the allowable epsilon ball. This iterative approach
-allows PGD to find more effective adversarial examples, which are often less perceptible to human observers and harder
-for the model to detect. It has the disadvantage of being \textbf{slower}. Since PGD involves multiple iterations, it is
-computationally expensive and slower compared to FGSM.
+The PGD has the advantage of \textbf{robustness}. an iterative process where it computes small gradient-based steps and projects the perturbed data back within the allowable 
+$\epsilon$-ball. This iterative approach allows PGD to find more effective adversarial examples that are harder for the model to detect and often less perceptible to human observers. However, its disadvantage lies in being \textbf{slower}. PGD's iterative nature makes it computationally expensive and significantly slower than FGSM.
 
-The overall trade-off between FGSM and PGD depends on the specific use case and requirements, that is, \textbf{Speed vs Robustness},
-since FGSM is faster and more lightweight, making it ideal for quick attacks where computational cost is a concern.
-However, it might not be as effective as PGD in creating adversarial examples that lead to model misclassification.
-PGD, on the other hand, is more computationally expensive but is more powerful and effective in creating subtle
-adversarial examples that are harder for the model to classify correctly. It also depends on the final use case, that is,
-if speed and efficiency are the primary goals, FGSM is a better option. However, if the goal is to create strong
-adversarial examples that are more likely to fool a robust model, PGD is a better choice despite its higher
-computational cost.
+The overall trade-off between FGSM and PGD depends on the specific use case and requirements, that is, \textbf{Speed vs Robustness}. FGSM is faster and computationally less demanding, making it suitable for quick attacks or scenarios where computational resources are limited. However, it is generally less effective than PGD in generating adversarial examples that cause consistent misclassifications, resulting in lower robustness to adversarial examples.
+
+PGD, in contrast, is computationally more expensive due to its iterative nature but generates more precise adversarial examples that are harder for the model to classify correctly. This makes PGD more effective at evaluating and improving a model's robustness to adversarial attacks.
+
+Overall, FGSM is appropriate when speed and efficiency are the main concerns. PGD is better suited for tasks where creating more robust adversarial examples is necessary, even at the cost of increased computational demands.
 
 
 
