@@ -40,15 +40,15 @@ class CNNEncoder(nn.Module):
         #######################
         self.net = nn.Sequential(
             nn.Conv2d(num_input_channels, num_filters, kernel_size=3, padding=1, stride=2),  # 28x28 => 14x14
-            nn.LeakyReLU(),
+            nn.GELU(),
             nn.Conv2d(num_filters, num_filters, kernel_size=3, padding=1),  # 14x14 => 14x14
-            nn.LeakyReLU(),
+            nn.GELU(),
             nn.Conv2d(num_filters, 2*num_filters, kernel_size=3, padding=1, stride=2),  # 14x14 => 7x7
-            nn.LeakyReLU(),
+            nn.GELU(),
             nn.Conv2d(2*num_filters, 2*num_filters, kernel_size=3, padding=1),  # 7x7 => 7x7
-            nn.LeakyReLU(),
+            nn.GELU(),
             nn.Conv2d(2*num_filters, 2*num_filters, kernel_size=3, padding=1, stride=2),  # 7x7 => 4x4
-            nn.LeakyReLU(),
+            nn.GELU(),
             nn.Flatten(),  # Image grid to single feature vector
         )
 
@@ -100,20 +100,20 @@ class CNNDecoder(nn.Module):
         # PUT YOUR CODE HERE  #
         #######################
         self.fc = nn.Sequential(
-            nn.Linear(z_dim, 2 * 4 * 4 * num_filters)  # Linear layer to map z to 4x4x2*num_filters
+            nn.Linear(z_dim, 2 * 4 * 4 * num_filters),  # Linear layer to map z to 4x4x2*num_filters
+            nn.GELU(),
         )
 
         self.net = nn.Sequential(
             nn.ConvTranspose2d(2*num_filters, 2*num_filters, kernel_size=3, padding=1, stride=2, output_padding=0),  # 4x4 => 7x7
-            nn.LeakyReLU(),
+            nn.GELU(),
             nn.Conv2d(2*num_filters, 2*num_filters, kernel_size=3, padding=1),  # 7x7 => 7x7
-            nn.LeakyReLU(),
+            nn.GELU(),
             nn.ConvTranspose2d(2*num_filters, num_filters, kernel_size=3, padding=1, stride=2, output_padding=1),  # 7x7 => 14x14
-            nn.LeakyReLU(),
+            nn.GELU(),
             nn.Conv2d(num_filters, num_filters, kernel_size=3, padding=1),  # 14x14 => 14x14
-            nn.LeakyReLU(),
+            nn.GELU(),
             nn.ConvTranspose2d(num_filters, num_input_channels, kernel_size=3, padding=1, stride=2, output_padding=1),  # 14x14 => 28x28
-            nn.Tanh(),  # Tanh to map to [-1, 1]
         )
         #######################
         # END OF YOUR CODE    #
