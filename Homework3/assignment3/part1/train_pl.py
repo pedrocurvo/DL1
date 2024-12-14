@@ -77,12 +77,12 @@ class VAE(pl.LightningModule):
         z = sample_reparameterize(mean, std)
 
         # Decode
-        decoded_logits = self.decoder(z)
+        logits = self.decoder(z)
 
         # Prepare target images as integer class indices
         imgs_int = imgs.squeeze(1).long()
         
-        L_rec = F.cross_entropy(decoded_logits, imgs_int, reduction='none').sum(dim=[1,2]).mean()
+        L_rec = F.cross_entropy(logits, imgs_int, reduction='none').sum(dim=[1,2]).mean()
 
         L_reg = KLD(mean, log_std).mean()
         loss = L_rec + L_reg
@@ -108,14 +108,14 @@ class VAE(pl.LightningModule):
         z = torch.randn(batch_size, self.hparams.z_dim).to(self.device)
 
         # Decode
-        recon_logits = self.decoder(z) # This as [-1, 1] range
+        logits = self.decoder(z)
 
         # Sample pixel values from the output distribution
-        probs = F.softmax(recon_logits, dim=1)
+        probs = F.softmax(logits, dim=1)
         probs_reshaped = probs.permute(0, 2, 3, 1).reshape(-1, 16)
         x_samples = torch.multinomial(probs_reshaped, 1)
-        x_samples = x_samples.view(batch_size, recon_logits.shape[2], recon_logits.shape[3]).float()
-        x_samples = x_samples.unsqueeze(1)  # Add channel dimension
+        x_samples = x_samples.view(batch_size, logits.shape[2], logits.shape[3]).float()
+        x_samples = x_samples.unsqueeze(1)  # Add a channel dimension
         #######################
         # END OF YOUR CODE    #
         #######################

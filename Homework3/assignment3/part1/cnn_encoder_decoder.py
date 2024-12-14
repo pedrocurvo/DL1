@@ -100,7 +100,7 @@ class CNNDecoder(nn.Module):
         # PUT YOUR CODE HERE  #
         #######################
         self.fc = nn.Sequential(
-            nn.Linear(z_dim, 2 * 4 * 4 * num_filters),  # Linear layer to map z to 4x4x2*num_filters
+            nn.Linear(z_dim, 2 * 4 * 4 * num_filters),
             nn.GELU(),
         )
 

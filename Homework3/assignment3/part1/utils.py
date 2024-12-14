@@ -36,7 +36,7 @@ def sample_reparameterize(mean, std):
     # PUT YOUR CODE HERE  #
     #######################
     epsilon = torch.randn_like(std)
-    z = mean + std * epsilon # reparameterization trick
+    z = mean + std * epsilon
     #######################
     # END OF YOUR CODE    #
     #######################
@@ -110,7 +110,7 @@ def visualize_manifold(decoder, grid_size=20):
     #######################
     # Generate percentiles
     linspace = torch.linspace(0.5 / grid_size, (grid_size - 0.5) / grid_size, grid_size)
-    grid_x, grid_y = torch.meshgrid(linspace, linspace, indexing='ij')  # Explicit indexing for clarity
+    grid_x, grid_y = torch.meshgrid(linspace, linspace, indexing='ij')
 
     # Convert percentiles to latent space samples
     normal_dist = torch.distributions.Normal(0, 1)
@@ -119,28 +119,19 @@ def visualize_manifold(decoder, grid_size=20):
         normal_dist.icdf(grid_y.flatten())
     ], dim=1).to(decoder.device)
 
-    # Decode latents into images
     # Decode
-    recon_logits = decoder(z) # This as [-1, 1] range
+    logits = decoder(z)
 
     # Sample pixel values from the output distribution
-    # Sample pixel values from the output distribution
-    # probs = F.softmax(recon_logits, dim=1)
-    # probs_reshaped = probs.permute(0, 2, 3, 1).reshape(-1, 16)
-    # x_samples = torch.multinomial(probs_reshaped, 1)
-    # x_samples = x_samples.view(batch_size, recon_logits.shape[2], recon_logits.shape[3]).float()
-    # x_samples = x_samples.unsqueeze(1)  # Add channel dimension
-    # Sample pixel values preserving spatial structure
-    x_samples = torch.zeros(recon_logits.shape[0], 1, recon_logits.shape[2], recon_logits.shape[3], 
-                            device=decoder.device)
+    B, C, H, W = logits.shape
+    probs = torch.softmax(logits, dim=1)
+    probs_reshaped = probs.permute(0, 2, 3, 1).reshape(-1, 16)
+    x_samples = torch.multinomial(probs_reshaped, 1)
+    x_samples = x_samples.view(B, H, W).float()
+    x_samples = x_samples.unsqueeze(1)
     
-    for b in range(recon_logits.shape[0]):
-        for h in range(recon_logits.shape[2]):
-            for w in range(recon_logits.shape[3]):
-                pixel_probs = torch.softmax(recon_logits[b, :, h, w], dim=0)
-                x_samples[b, 0, h, w] = torch.multinomial(pixel_probs, 1).float()
-    
-    imgs = x_samples / 15.0  # Move images between 0 and 1
+    # Move images between 0 and 1
+    imgs = x_samples / 15.0  
 
     # Create a grid of images
     img_grid = make_grid(imgs, nrow=grid_size, normalize=True, value_range=(0, 1), pad_value=0.5)
