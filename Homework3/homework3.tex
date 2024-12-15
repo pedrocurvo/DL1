@@ -591,23 +591,23 @@ During adversarial training, it might also be possible that the model might over
     \hline
     Attack & \multicolumn{7}{c|}{\textbf{Test Accuracy}}\\
     \hline
-    Without     & 93.00\% & 67.00\% & 61.00\% & 87.00\% & 53.00\% & & \\
-    FGSM        & 41.00\% & 17.36\% & 23.20\% & 56.24\% & 30.32\% & & \\
-    PGD         & 42.48\% & 15.88\% & 24.52\% & 62.24\% & 25.32\% & & \\
+    Without     & 93.00\% & 67.00\% & 61.00\% & 87.00\% & 53.00\% & 50.00\% & 86.00\% \\
+    FGSM        & 41.00\% & 17.36\% & 23.20\% & 56.24\% & 30.32\% & 29.08\% & 59.36\% \\
+    PGD         & 42.48\% & 15.88\% & 24.52\% & 62.24\% & 25.32\% & 29.12\% & 69.52\%\\
     \hline
     \multicolumn{8}{|c|}{\textbf{}}\\
     \hline
-    Train Loss                  & & 0.2033 & 1.0450 & 0.2839 & 0.6887 & & \\
-    Train Accuracy              & & 0.9548 & 0.7514 & 0.9949 & 0.7705 & & \\
-    Validation Loss             & & 0.9880 & 1.0957 & 0.3586 & 1.7670 & & \\
-    Validation Accuracy         & & 0.6694 & 0.6103 & 0.8810 & 0.5058 & & \\
-    Best Validation Accuracy    & & 0.6727 & 0.6171 & 0.8859 & 0.5373 & & \\
+    Train Loss                  & & 0.2033 & 1.0450 & 0.2839 & 0.6887 &1.1393 &0.1748 \\
+    Train Accuracy              & & 0.9548 & 0.7514 & 0.9949 & 0.7705 &0.5918 &0.9392 \\
+    Validation Loss             & & 0.9880 & 1.0957 & 0.3586 & 1.7670 &1.6361 & 0.5664 \\
+    Validation Accuracy         & & 0.6694 & 0.6103 & 0.8810 & 0.5058 &0.4845 & 0.8502 \\
+    Best Validation Accuracy    & & 0.6727 & 0.6171 & 0.8859 & 0.5373 &0.5173 &0.8712 \\
     \hline
     \end{tabular}
     \caption{Trained models}
 \end{table}
 
-We observe that with pgd we get a better accuracy than with fgsm in adversarial attacks, but we loose overall accuracy wihtout any attacks, which is expected since PGD applies an iterative approach and can find more effective adversarial examples than FGSM. We also observe that the model trained with augmentation performs better than its counterpart without augmentation, which is expected as augmentation helps the model generalize better and become more robust to adversarial attacks.
+We observe that with pgd we get a better accuracy than with fgsm in adversarial attacks, but we loose overall accuracy wihtout any attacks, which is expected since PGD applies an iterative approach and can find more effective adversarial examples than FGSM. We also observe that the model trained with augmentation performs better (in attacks) than its counterpart without augmentation, which is expected as augmentation helps the model generalize better and become more robust to adversarial attacks.
 
 \subsubsection*{i)}
 
