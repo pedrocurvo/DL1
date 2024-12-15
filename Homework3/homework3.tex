@@ -140,7 +140,7 @@ For this reason, VAEs use an alternative approach, such as the variational poste
 
 
 
-
+\newpage
 \subsection*{1.3}
 
 From Equation 10, we have:
@@ -174,7 +174,7 @@ With this we have that:
 Therefore, the right-hand side of the equation $\mathbb{E}_{q_{\theta}(z_n|x_n)}[\log p(x_n|z_n)] - KL(q_{\theta}(z_n|x_n) || p(z_n))$ is
 always less than or equal to the true log-likelihood $\log p(x_n)$. Hence, the right-hand side of the equation is a lower bound on the true log-likelihood.
 
-
+\newpage
 \subsection*{1.4}
 
 ELBO consists of two terms: 
@@ -221,40 +221,35 @@ regularizes the model by preventing the posterior distribution from deviating to
 Therefore, it is called the \textbf{regularization} loss.
 \end{itemize}
 
+\newpage
+
 \subsection*{1.6}
 
-When the prior distribution $p(z_n)$ is and variational posterior $q_{\theta}(z_n|x_n)$ are not Gaussian, the KL divergence
+When the prior distribution $p(z_n)$ and variational posterior $q_{\theta}(z_n|x_n)$ are not Gaussian, the KL divergence
 term $KL(q_{\theta}(z_n|x_n) || p(z_n))$ cannot be computed simply in closed form. To overcome this, we can use the
 Monte Carlo approximation to estimate the regularization term. 
 
 The regularization term in the VAE is the KL divergence between the variational distribution $q_{\theta}(z_n|x_n)$ and the prior distribution $p(z_n)$.
 Mathematically, this term is defined as:
-
 \begin{align*}
     D_{KL}(q_{\theta}(z_n|x_n) || p(z_n)) &= \mathbb{E}_{q_{\theta}(z_n|x_n)}[\log \frac{q_{\theta}(z_n|x_n)}{p(z_n)}] \\
 \end{align*}
-
 Assuming the closed-form expression for the KL divergence is intractable, we can use the Monte Carlo approximation to estimate the KL divergence.
 First, we sample $L$ latent vectors $z_n^{(l)}$ from the variational distribution $q_{\theta}(z_n|x_n)$, where $l = 1, 2, ..., L$.
 Then, we compute the log-ratio of the variational distribution and the prior distribution for each sample:
-
 \begin{align*}
     \log \frac{q_{\theta}(z_n^{(l)}|x_n)}{p(z_n)} \\
 \end{align*}
-
 where $q_{\theta}(z_n^{(l)}|x_n)$ is the probability density of the variational distribution evaluated at the sample $z_n^{(l)}$.
 Finally, we compute the Monte Carlo estimate of the KL divergence as:
 
 \begin{align*}
     D_{KL}(q_{\theta}(z_n|x_n) || p(z_n)) &\approx \frac{1}{L} \sum_{l=1}^{L} \log \frac{q_{\theta}(z_n^{(l)}|x_n)}{p(z_n)} \\
 \end{align*}
-
 Then, we can use this approximation in the loss function:
-
 \begin{align*}
     \mathbb{L}_{regularization,n} &\approx \frac{1}{L} \sum_{l=1}^{L} \log \frac{q_{\theta}(z_n^{(l)}|x_n)}{p(z_n)} \\
 \end{align*}
-
 This methods allows us to estimate the KL divergence term when the prior and variational posterior are not Gaussian. The more
 samples we use, the more accurate the estimate will be, but it will also increase the computational cost of training the model.
 This method can be used for any arbitrary prior and variational posterior distributions, as long as we can sample from the variational distribution
@@ -279,9 +274,10 @@ where \( \mu_{\theta}(x_n) \) and \( \sigma_{\theta}(x_n) \) are the encoder out
 This reformulation ensures that the randomness is isolated in \( \epsilon \), which is independent of \( \theta \). Consequently, the sampling operation becomes differentiable with respect to \( \theta \), allowing gradients of the loss function to propagate through the encoder network via backpropagation.
 
 
+\newpage
 \subsection*{1.8}
 
-\begin{table}[H]
+\begin{table}[h]
     \centering
     \begin{tabular}{|c|}
     \hline
@@ -292,7 +288,7 @@ This reformulation ensures that the randomness is isolated in \( \epsilon \), wh
     \end{tabular}
 \end{table}
 
-\begin{figure}[H]
+\begin{figure}[h]
     \centering
     \includegraphics[width=\textwidth]{images/train_bpd.pdf}
     \caption{Train BPD for VAE with latent dim=20}
@@ -396,9 +392,9 @@ Some areas contain blurry or incomplete digits, indicating regions where the mod
 \begin{itemize}
     \item \textbf{i)} Adding a random perturbation of size $\epsilon$ does not target the specific vulnerability of the model, but rather adds noise to the input data. FGSM, on the other hand, is a targeted attack, since it uses the gradient of the loss function to find the direction in which the input data should be perturbed to maximize the loss for a given input. This targeted attack is more effective at fooling the model than adding random noise. It also ensures that the perturbation aligns with the model decision boundary, making it more likely to fool the model. Random noise, on the other hand, is unlikely to align with the decision boundary, making it less effective at fooling the model.
 
-    \item \textbf{ii)} This phenomenon occurs because both models A and B, despite being trained on different subsets of the data, are optimized for the same task and learn to extract similar features from the data. As a result, they develop similar high-level representations and decision boundaries. Adversarial perturbations exploit weaknesses in these representations by pushing inputs in directions that maximize the loss, perturbation that align with the models' decision boundary (and in this case A and B will have similar decision boundaries). These directions often correspond to vulnerabilities shared by both models due to the shared structure of the data and the underlying task.
+    \item \textbf{ii)} This phenomenon occurs because both models A and B, despite being trained on different subsets of the data, are optimized for the same task and learn to extract similar features from the data. As a result, they develop similar high-level representations and decision boundaries. Adversarial perturbations exploit weaknesses in these representations by pushing inputs in directions that maximize the loss, perturbation that align with the models' decision boundary (and in this case A and B will have similar decision boundaries). These directions often correspond to vulnerabilities shared by both models due to the shared structure of the data and the shared task.
 
-    In high-dimensional spaces, even small perturbations crafted for one model are likely to remain effective on another model because of the inherent similarities in their learned feature spaces and gradients. This shared susceptibility leads to the transferability of adversarial examples between models trained for the same task.
+    In high-dimensional spaces, even small perturbations designed for one model are likely to remain effective on another one because of the inherent similarities in their learned feature spaces and gradients. This shared susceptibility leads to the transferability of adversarial examples between models trained for the same task.
 
     \item \textbf{iii)} Models trained with data augmentation are more robust to adversarial examples because data augmentation introduces noise and perturbations to the training data, which makes the model more robust to small perturbations in the input. When the model is trained with augmented data, such as adding noise, rotations, or translations to the training images, the model learns to generalize better and consequently the model's decision boundary becomes smoother and less sensitive and reactive to small, targeted perturbations. This makes it harder for an attacker to generate adversarial examples that fool the model.
 \end{itemize}
@@ -407,40 +403,40 @@ Some areas contain blurry or incomplete digits, indicating regions where the mod
 
 \begin{table}[H]
     \centering
-    \begin{tabular}{|c|cccc|}
+    \begin{tabular}{|c|cccccc|}
     \hline
-    \textbf{Argument} & \multicolumn{4}{|c|}{\textbf{Values}} \\
+    \textbf{Argument} & \multicolumn{6}{|c|}{\textbf{Values}} \\
     \hline
-    batch\_size &       \multicolumn{4}{c|}{64} \\
-    valid\_ratio &      \multicolumn{4}{c|}{0.75} \\
-    num\_epochs &       \multicolumn{4}{c|}{30} \\
-    epsilon\_fgsm &     \multicolumn{4}{c|}{0.1} \\
-    alpha\_fgsm &       \multicolumn{4}{c|}{0.5} \\
-    epsilon\_pgd &      \multicolumn{4}{c|}{0.01} \\
-    alpha\_pgd &        \multicolumn{4}{c|}{2} \\
-    num\_iter\_pgd &    \multicolumn{4}{c|}{10} \\
-    visualise &         \multicolumn{4}{c|}{True} \\
-    Device &            \multicolumn{4}{c|}{GPU} \\
-    augmentations & \textbf{-}  & \textbf{False} & \textbf{False} & \textbf{True} \\
-    pretrained & \textbf{True}  & \textbf{False} & \textbf{False} & \textbf{True} \\
-    train\_strats & [standard] & [standard] & [fgsm] & [fgsm] \\
+    batch\_size &       \multicolumn{6}{c|}{64} \\
+    valid\_ratio &      \multicolumn{6}{c|}{0.75} \\
+    num\_epochs &       \multicolumn{6}{c|}{30} \\
+    epsilon\_fgsm &     \multicolumn{6}{c|}{0.1} \\
+    alpha\_fgsm &       \multicolumn{6}{c|}{0.5} \\
+    epsilon\_pgd &      \multicolumn{6}{c|}{0.01} \\
+    alpha\_pgd &        \multicolumn{6}{c|}{2} \\
+    num\_iter\_pgd &    \multicolumn{6}{c|}{10} \\
+    visualise &         \multicolumn{6}{c|}{True} \\
+    Device &            \multicolumn{6}{c|}{GPU} \\
+    augmentations & \textbf{-}  & \textbf{False} & \textbf{False} & \textbf{True} & \textbf{False} & \textbf{True} \\
+    pretrained & \textbf{True}  & \textbf{False} & \textbf{False} & \textbf{True} & \textbf{False} & \textbf{False}\\
+    train\_strats & [standard] & [standard] & [fgsm] & [fgsm] & [pgd] & [pgd]\\
     \hline
-    Attack & \multicolumn{4}{c|}{\textbf{Test Accuracy}}\\
+    Attack & \multicolumn{6}{c|}{\textbf{Test Accuracy}}\\
     \hline
-    Without & 93.00\% & 67.00\% & 61.00\% & 87.00\%\\
-    FGSM & 41.00\% & 17.36\% & 23.20\% & 56.24\% \\
-    PGD & 42.48\% &15.88\%& 24.52\% & 62.24\% \\
+    Without     & 93.00\% & 67.00\% & 61.00\% & 87.00\% & 53.00\% & \\
+    FGSM        & 41.00\% & 17.36\% & 23.20\% & 56.24\% & 30.32\% & \\
+    PGD         & 42.48\% & 15.88\% & 24.52\% & 62.24\% & 25.32\% & \\
     \hline
-    \multicolumn{5}{|c|}{\textbf{}}\\
+    \multicolumn{7}{|c|}{\textbf{}}\\
     \hline
-    Train Loss & &0.2033 & 1.0450 & 0.2839 \\
-    Train Accuracy & &0.9548 & 0.7514 & 0.9949 \\
-    Validation Loss & &0.9880 & 1.0957 & 0.3586 \\
-    Validation Accuracy & &0.6694 & 0.6103 & 0.8810 \\
-    Best Validation Accuracy & &0.672669 & 0.617055 & 0.885858 \\
+    Train Loss                  & & 0.2033 & 1.0450 & 0.2839 & 0.6887 & \\
+    Train Accuracy              & & 0.9548 & 0.7514 & 0.9949 & 0.7705 & \\
+    Validation Loss             & & 0.9880 & 1.0957 & 0.3586 & 1.7670 & \\
+    Validation Accuracy         & & 0.6694 & 0.6103 & 0.8810 & 0.5058 & \\
+    Best Validation Accuracy    & & 0.6727 & 0.6171 & 0.8859 & 0.5373 & \\
     \hline
     \end{tabular}
-    \caption{Argument values for FGSM loss for checking accuracy with/without attack/defense}
+    \caption{Trained models (the columns that matter to this question are the second and third where we can see the results for with/without defense and with/without attacks)\textbf{ Note:} We observe that by using a pretrained model and then using augmentation we get the best accuracy. This might be since we are finetunning the model with the adversial augmentation.}
 \end{table}
 
 % \begin{table}[H]
@@ -558,69 +554,87 @@ Some areas contain blurry or incomplete digits, indicating regions where the mod
 % \end{table}
 
 Without defense the model focuses solely on minimizing the loss on clean data, leading to high accuracy on natural,
-unperturbed inputs. However, it remains highly vulnerable to adversarial attacks, as it lacks mechanisms to handle small,
-targeted perturbations. 
+unperturbed inputs. However, it remains highly vulnerable to adversarial attacks, as it lacks mechanisms to handle small, targeted perturbations. That's why we see that without an attack we get 67\% accuracy, but with FGSM we get 17\%.
 
 With defense, the model gains robustness to adversarial attacks by incorporating adversarial training. With this,
 the model learns smoother decision boundaries and learns how to adapt to small perturbations in the input data. This
-can reduce its accuracy on clean data because the model shifts its focus from purely optimizing performance on the clean dataset
-to balancing performance on both clean and adversarial examples. This can lead to a decrease in accuracy on clean data.
-Hence, the models with defense often sacrifice better generalization on clean data to gain robustness to adversarial attacks.
+can reduce its accuracy on clean data (we see a drop to 61\%) because the model shifts its focus from purely optimizing performance on the clean dataset to balancing performance on both clean and adversarial examples. This can lead to a decrease in accuracy on clean data. Hence, the models with defense often sacrifice better generalization on clean data to gain robustness to adversarial attacks (we observe better accuracy on adversarial attack - 23\% compared to without defense).
 
 This trade-off occurs because neural networks have \textbf{limited capacity} and must allocate resources to learn to generalize.
-Allocating some of this capacity to handle adversarial perturbations reduces the focus on patterns in clean data, leading to
-a decrease in accuracy on clean data.
-Besides this, defending against adversarial attacks often involves smoothing or reshaping decision boundaries to make them robust
-to perturbations, However, this might \textbf{oversimplify the boundary}, causing the model to misclassify some clean data points.
-During adversarial training, it might also be possible that the model might overfit to specific types of adversarial perturbations,
-as the FGSM, reducing the accuracy on clean data.
+Allocating some of this capacity to handle adversarial perturbations reduces the focus on patterns in clean data, leading to a decrease in accuracy on clean data.
+Besides this, defending against adversarial attacks often involves smoothing or reshaping decision boundaries to make them robust to perturbations, However, this might \textbf{oversimplify the boundary}, causing the model to misclassify some clean data points.
+During adversarial training, it might also be possible that the model might overfit to specific types of adversarial perturbations, as the FGSM, reducing the accuracy on clean data.
 
 
+\newpage
 \subsection*{2.3}
+
+\begin{table}[H]
+    \centering
+    \begin{tabular}{|c|ccccccc|}
+    \hline
+    \textbf{Argument} & \multicolumn{7}{|c|}{\textbf{Values}} \\
+    \hline
+    batch\_size &       \multicolumn{7}{c|}{64} \\
+    valid\_ratio &      \multicolumn{7}{c|}{0.75} \\
+    num\_epochs &       \multicolumn{7}{c|}{30} \\
+    epsilon\_fgsm &     \multicolumn{7}{c|}{0.1} \\
+    alpha\_fgsm &       \multicolumn{7}{c|}{0.5} \\
+    epsilon\_pgd &      \multicolumn{7}{c|}{0.01} \\
+    alpha\_pgd &        \multicolumn{7}{c|}{2} \\
+    num\_iter\_pgd &    \multicolumn{7}{c|}{10} \\
+    visualise &         \multicolumn{7}{c|}{True} \\
+    Device &            \multicolumn{7}{c|}{GPU} \\
+    augmentations & \textbf{-}  & \textbf{False} & \textbf{False} & \textbf{True} & \textbf{False} & \textbf{True} & \textbf{True}\\
+    pretrained & \textbf{True}  & \textbf{False} & \textbf{False} & \textbf{True} & \textbf{False} & \textbf{False}& \textbf{True}\\
+    train\_strats & [standard] & [standard] & [fgsm] & [fgsm] & [pgd] & [pgd] & [pgd] \\
+    \hline
+    Attack & \multicolumn{7}{c|}{\textbf{Test Accuracy}}\\
+    \hline
+    Without     & 93.00\% & 67.00\% & 61.00\% & 87.00\% & 53.00\% & & \\
+    FGSM        & 41.00\% & 17.36\% & 23.20\% & 56.24\% & 30.32\% & & \\
+    PGD         & 42.48\% & 15.88\% & 24.52\% & 62.24\% & 25.32\% & & \\
+    \hline
+    \multicolumn{8}{|c|}{\textbf{}}\\
+    \hline
+    Train Loss                  & & 0.2033 & 1.0450 & 0.2839 & 0.6887 & & \\
+    Train Accuracy              & & 0.9548 & 0.7514 & 0.9949 & 0.7705 & & \\
+    Validation Loss             & & 0.9880 & 1.0957 & 0.3586 & 1.7670 & & \\
+    Validation Accuracy         & & 0.6694 & 0.6103 & 0.8810 & 0.5058 & & \\
+    Best Validation Accuracy    & & 0.6727 & 0.6171 & 0.8859 & 0.5373 & & \\
+    \hline
+    \end{tabular}
+    \caption{Trained models}
+\end{table}
+
+We observe that with pgd we get a better accuracy than with fgsm in adversarial attacks, but we loose overall accuracy wihtout any attacks, which is expected since PGD applies an iterative approach and can find more effective adversarial examples than FGSM. We also observe that the model trained with augmentation performs better than its counterpart without augmentation, which is expected as augmentation helps the model generalize better and become more robust to adversarial attacks.
 
 \subsubsection*{i)}
 
 Comparing adversarial loss and adding adversarial examples to the batch: 
 
 \begin{itemize}
-    \item \textbf{Adversarial loss}: When using an adversarial loss (as in the loss function that incorporates adversarial examples
-    into the objective function), the adversarial perturbation is typically added directly to the loss term, which blends
-    the clean and adversarial gradients in each training step, allowing the model to learn from adversarial examples
-    during the forward pass while still using the original input for calculating the primary loss. It has the pros of
-    being more direct and efficient as it integrates adversarial examples into the loss function itself and isolates
-    the adversarial perturbation from the clean data by using a separate loss term for each, which might prevent the model
-    from overfitting to the adversarial perturbations since the loss landscape is a sum of the clean and adversarial losses, 
-    hence by oversmoothing one we might not oversmooth the other.
-    However, it relies on modifying the loss function, which might require more complex implementation and tuning for the training. 
+    \item \textbf{Adversarial loss}: Adversarial loss incorporates adversarial examples directly into the objective function. This is done by adding adversarial perturbations to the loss term, mixing clean and adversarial gradients during each training step. This approach allows the model to learn from adversarial examples during the forward pass while still using the original input for calculating the primary loss. This method is efficient and straightforward, since it integrates adversarial examples directly into the loss function. It also separates the clean and adversarial data by using distinct loss terms for each. This separation can help prevent overfitting/underfitiing to adversarial perturbations, as the overall loss is a combination of clean and adversarial components. By smoothing one, the other may remain unaffected, preserving a balanced loss landscape. However, implementing adversarial loss requires modifying the loss function, which can lead to more finetunning. 
 
     \item \textbf{Adding adversarial examples to the batch}: In this approach, the adversarial examples are explicitly
-    generated and added to the batch during training, along with the original clean and samples. This results in the model
-    training on a larger batch that contains both clean and adversarial examples, forcing the model to correctly classify
-    both types of examples. It has the pros of the model seeing both types of inputs (clean and adversarial) in each
-    iteration, increasing robustness. It has the cons of an increasing computational cost, because we are increasing
-    the batch size. Besides that, since we are now using the same loss function for both clean and adversarial examples,
-    the model might overfit to the adversarial examples leading to a decrease in accuracy on clean data or oversmoothing
-    the loss landscape (which now is just one overall), which might hurt the model's performance on clean data.
+    generated and added to the batch during training, along with the original clean and samples. This results in the model training on a larger batch that contains both clean and adversarial examples, forcing the model to correctly classify  both types of examples. It has the pros of the model seeing both types of inputs (clean and adversarial) in each iteration, increasing robustness. It has the cons of an increasing computational cost, because we are increasing the batch size. Besides that, since we are now using the same loss function for both clean and adversarial examples, the model might overfit to the adversarial examples leading to a decrease in accuracy on clean data or oversmoothing the loss landscape (which now is just one overall), hurting the model's performance on clean data.
 \end{itemize}
 
-\textbf{Difference:} The key difference is that the adversarial loss modifies the optimization process directly by changing the objective function, whereas adding adversarial examples to the batch increases the diversity of the training data. Both approaches encourage the model to become more robust to adversarial perturbations, but they do so in different ways.
+\textbf{Difference:} The key difference is that the adversarial loss modifies the optimization process directly by changing the objective function, while adding adversarial examples to the batch increases the diversity of the training data.
 
-\textbf{Conditions for Alignment:} These two methods may align when the adversarial loss function effectively integrates perturbations in a manner similar to how adversarial examples are added to the batch. Both would encourage learning from both clean and adversarial inputs.
+\textbf{Alignment:} These two methods may align when the adversarial loss function effectively integrates perturbations in a manner similar to how adversarial examples are added to the batch. 
 
-\textbf{Conditions for Divergence:} They could diverge in scenarios where the adversarial loss focuses more on optimizing the network's response to perturbations, while adding adversarial examples to the batch gives the model a broader exposure to such attacks without necessarily optimizing its response to them as directly. Adversarial loss is computationally more efficient, while batch augmentation demands greater resources due to increased batch sizes.
+\textbf{Divergence:} They could diverge in scenarios where the adversarial loss focuses more on optimizing the network's response to perturbations, while adding adversarial examples to the batch gives the model a broader exposure to such attacks without necessarily optimizing its response to them directly. Adversarial loss is computationally more efficient, while batch augmentation demands greater resources due to increased batch sizes.
 
 \subsubsection*{ii)}
 
-One advantage of the FGSM is the \textbf{speed}. FGSM is a single-step attack that computes the gradient once and adds a small perturbation based on that gradient, making it very fast and computationally efficient compared to iterative attacks. However, its \textbf{effectiveness} is a limitation. FGSM generally produces more noticeable perturbations because it only takes a single step, and the model is more likely to recognize the pattern of the perturbation.
+One advantage of the FGSM is the \textbf{speed}. FGSM is a single-step attack that computes the gradient once and adds a small perturbation based on that, making it very fast and computationally efficient compared to iterative attacks. However, its \textbf{effectiveness} is a limitation. FGSM produces more noticeable perturbations because it only takes a single step, and the model is more likely to recognize the pattern of the perturbation.
 
-The PGD has the advantage of \textbf{robustness}. an iterative process where it computes small gradient-based steps and projects the perturbed data back within the allowable 
-$\epsilon$-ball. This iterative approach allows PGD to find more effective adversarial examples that are harder for the model to detect and often less perceptible to human observers. However, its disadvantage lies in being \textbf{slower}. PGD's iterative nature makes it computationally expensive and significantly slower than FGSM.
+The PGD has the advantage of \textbf{robustness}. PGD is an iterative process which computes small gradient-based steps and projects the perturbed data back within the allowable $\epsilon$-ball. This allows it to find more effective adversarial examples that are harder for the model to detect and often less perceptible to human observers. However, its disadvantage is being \textbf{slower}. The iterative nature makes it computationally expensive and significantly slower than FGSM.
 
-The overall trade-off between FGSM and PGD depends on the specific use case and requirements, that is, \textbf{Speed vs Robustness}. FGSM is faster and computationally less demanding, making it suitable for quick attacks or scenarios where computational resources are limited. However, it is generally less effective than PGD in generating adversarial examples that cause consistent misclassifications, resulting in lower robustness to adversarial examples.
+The overall trade-off between FGSM and PGD depends on the specific use case and requirements, that is, \textbf{Speed vs Robustness}. FGSM is faster and computationally less demanding, making it suitable for quick attacks or scenarios where computational resources are limited. However, it is less effective than PGD in generating adversarial examples that cause consistent misclassifications, resulting in lower robustness to adversarial examples.
 
-PGD, in contrast, is computationally more expensive due to its iterative nature but generates more precise adversarial examples that are harder for the model to classify correctly. This makes PGD more effective at evaluating and improving a model's robustness to adversarial attacks.
-
-Overall, FGSM is appropriate when speed and efficiency are the main concerns. PGD is better suited for tasks where creating more robust adversarial examples is necessary, even at the cost of increased computational demands.
+PGD is computationally more expensive due to its iterative nature but generates more precise adversarial examples that are harder for the model to classify correctly. This makes it more effective at improving a model's robustness to adversarial attacks.
 
 
 
