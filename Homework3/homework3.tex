@@ -407,143 +407,155 @@ Some areas contain blurry or incomplete digits, indicating regions where the mod
 
 \begin{table}[H]
     \centering
-    \begin{tabular}{|c|c|c|c|c|}
+    \begin{tabular}{|c|cccc|}
     \hline
     \textbf{Argument} & \multicolumn{4}{|c|}{\textbf{Values}} \\
     \hline
-    batch\_size & 64 & 64 & 64 & 64 \\
-    valid\_ratio & 0.75 & 0.75 & 0.75 & 0.75 \\
-    augmentations & \textbf{False} & \textbf{False} & \textbf{True} & \textbf{True} \\
-    pretrained & \textbf{False} & \textbf{False} & \textbf{True} & \textbf{True} \\
-    num\_epochs & 30 & 30 & 30 & 30 \\
-    train\_strats & [fgsm] & [fgsm] & [fgsm] & [fgsm] \\
-    visualise & True & True & True & True \\
-    epsilon\_fgsm & 0.1 & 0.1 & 0.1 & 0.1 \\
-    alpha\_fgsm & 0.5 & 0.5 & 0.5 & 0.5 \\
-    epsilon\_pgd & 0.01 & 0.01 & 0.01 & 0.01 \\
-    alpha\_pgd & 2 & 2 & 2 & 2 \\
-    num\_iter\_pgd & 10 & 10 & 10 & 10 \\
-    test\_crossover\_defense & \textbf{False} & \textbf{True} & \textbf{False} & \textbf{True} \\
-    Device & cuda & cuda & cuda & cuda \\
-    training\_strategy & fgsm & fgsm & fgsm & fgsm \\
+    batch\_size &       \multicolumn{4}{c|}{64} \\
+    valid\_ratio &      \multicolumn{4}{c|}{0.75} \\
+    num\_epochs &       \multicolumn{4}{c|}{30} \\
+    epsilon\_fgsm &     \multicolumn{4}{c|}{0.1} \\
+    alpha\_fgsm &       \multicolumn{4}{c|}{0.5} \\
+    epsilon\_pgd &      \multicolumn{4}{c|}{0.01} \\
+    alpha\_pgd &        \multicolumn{4}{c|}{2} \\
+    num\_iter\_pgd &    \multicolumn{4}{c|}{10} \\
+    visualise &         \multicolumn{4}{c|}{True} \\
+    Device &            \multicolumn{4}{c|}{GPU} \\
+    augmentations & \textbf{-}  & \textbf{False} & \textbf{False} & \textbf{True} \\
+    pretrained & \textbf{True}  & \textbf{False} & \textbf{False} & \textbf{True} \\
+    train\_strats & [standard] & [standard] & [fgsm] & [fgsm] \\
+    \hline
+    Attack & \multicolumn{4}{c|}{\textbf{Test Accuracy}}\\
+    \hline
+    Without & 93.00\% & 67.00\% & 61.00\% & 87.00\%\\
+    FGSM & 41.00\% & 17.36\% & 23.20\% & 56.24\% \\
+    PGD & 42.48\% &15.88\%& 24.52\% & 62.24\% \\
+    \hline
+    \multicolumn{5}{|c|}{\textbf{}}\\
+    \hline
+    Train Loss & &0.2033 & 1.0450 & 0.2839 \\
+    Train Accuracy & &0.9548 & 0.7514 & 0.9949 \\
+    Validation Loss & &0.9880 & 1.0957 & 0.3586 \\
+    Validation Accuracy & &0.6694 & 0.6103 & 0.8810 \\
+    Best Validation Accuracy & &0.672669 & 0.617055 & 0.885858 \\
     \hline
     \end{tabular}
     \caption{Argument values for FGSM loss for checking accuracy with/without attack/defense}
 \end{table}
 
-\begin{table}[H]
-    \centering
-    \begin{tabular}{|c|c|}
-    \hline
-    \textbf{Metric} & \textbf{Value} \\
-    \hline
-    \textbf{Train Loss} & 0.9781 \\
-    \textbf{Train Accuracy} & 0.7701 \\
-    \hline
-    \textbf{Validation Loss} & 1.0832 \\
-    \textbf{Validation Accuracy} & 0.6115 \\
-    \hline
-    \textbf{Training Time} & 8m 53s \\
-    \hline
-    \textbf{Best Validation Accuracy} & 0.618644 \\
-    \hline
-    \textbf{Test Accuracy} & 62\% \\
-    \hline
-    \multicolumn{2}{|c|}{\textbf{FGSM Attack}} \\
-    \hline
-    \textbf{Args} & \{'alpha': 0.5, 'epsilon': 0.1\} \\
-    \textbf{Test Accuracy} & 0.2584 \\
-    \hline
-    \end{tabular}
-    \caption{Model Performance and Adversarial Attack Results for FGSM loss without Defense}
-\end{table}
+% \begin{table}[H]
+%     \centering
+%     \begin{tabular}{|c|c|}
+%     \hline
+%     \textbf{Metric} & \textbf{Value} \\
+%     \hline
+%     \textbf{Train Loss} & 0.9781 \\
+%     \textbf{Train Accuracy} & 0.7701 \\
+%     \hline
+%     \textbf{Validation Loss} & 1.0832 \\
+%     \textbf{Validation Accuracy} & 0.6115 \\
+%     \hline
+%     \textbf{Training Time} & 8m 53s \\
+%     \hline
+%     \textbf{Best Validation Accuracy} & 0.618644 \\
+%     \hline
+%     \textbf{Test Accuracy} & 62\% \\
+%     \hline
+%     \multicolumn{2}{|c|}{\textbf{FGSM Attack}} \\
+%     \hline
+%     \textbf{Args} & \{'alpha': 0.5, 'epsilon': 0.1\} \\
+%     \textbf{Test Accuracy} & 0.2584 \\
+%     \hline
+%     \end{tabular}
+%     \caption{Model Performance and Adversarial Attack Results for FGSM loss without Defense}
+% \end{table}
 
-\begin{table}[H]
-    \centering
-    \begin{tabular}{|c|c|}
-    \hline
-    \textbf{Metric} & \textbf{Value} \\
-    \hline
-    \textbf{Train Loss} & 1.0450 \\
-    \textbf{Train Accuracy} & 0.7514 \\
-    \hline
-    \textbf{Validation Loss} & 1.0957 \\
-    \textbf{Validation Accuracy} & 0.6103 \\
-    \hline
-    \textbf{Training Time} & 8m 55s \\
-    \hline
-    \textbf{Best Validation Accuracy} & 0.617055 \\
-    \hline
-    \textbf{Test Accuracy} & 61\% \\
-    \hline
-    \multicolumn{2}{|c|}{\textbf{Adversarial Attacks}} \\
-    \hline
-    \textbf{FGSM Args} & \{'alpha': 0.5, 'epsilon': 0.1\} \\
-    \textbf{FGSM Test Accuracy} & 0.232 \\
-    \hline
-    \textbf{PGD Args} & \{'alpha': 2, 'epsilon': 0.01, 'num\_iter': 10\} \\
-    \textbf{PGD Test Accuracy} & 0.2452 \\
-    \hline
-    \end{tabular}
-    \caption{Model Training and Adversarial Attack Results for FGSM loss with defense}
-\end{table}
+% \begin{table}[H]
+%     \centering
+%     \begin{tabular}{|c|c|}
+%     \hline
+%     \textbf{Metric} & \textbf{Value} \\
+%     \hline
+%     \textbf{Train Loss} & 1.0450 \\
+%     \textbf{Train Accuracy} & 0.7514 \\
+%     \hline
+%     \textbf{Validation Loss} & 1.0957 \\
+%     \textbf{Validation Accuracy} & 0.6103 \\
+%     \hline
+%     \textbf{Training Time} & 8m 55s \\
+%     \hline
+%     \textbf{Best Validation Accuracy} & 0.617055 \\
+%     \hline
+%     \textbf{Test Accuracy} & 61\% \\
+%     \hline
+%     \multicolumn{2}{|c|}{\textbf{Adversarial Attacks}} \\
+%     \hline
+%     \textbf{FGSM Args} & \{'alpha': 0.5, 'epsilon': 0.1\} \\
+%     \textbf{FGSM Test Accuracy} & 0.232 \\
+%     \hline
+%     \textbf{PGD Args} & \{'alpha': 2, 'epsilon': 0.01, 'num\_iter': 10\} \\
+%     \textbf{PGD Test Accuracy} & 0.2452 \\
+%     \hline
+%     \end{tabular}
+%     \caption{Model Training and Adversarial Attack Results for FGSM loss with defense}
+% \end{table}
 
-\begin{table}[H]
-    \centering
-    \begin{tabular}{|c|c|}
-    \hline
-    \textbf{Metric} & \textbf{Value} \\
-    \hline
-    \textbf{Train Loss} & 0.2837 \\
-    \textbf{Train Accuracy} & 0.9949 \\
-    \hline
-    \textbf{Validation Loss} & 0.4018 \\
-    \textbf{Validation Accuracy} & 0.8705 \\
-    \hline
-    \textbf{Training Time} & 8m 53s \\
-    \hline
-    \textbf{Best Validation Accuracy} & 0.880826 \\
-    \hline
-    \textbf{Test Accuracy} & 88\% \\
-    \hline
-    \multicolumn{2}{|c|}{\textbf{Adversarial Attacks}} \\
-    \hline
-    \textbf{FGSM Args} & \{'alpha': 0.5, 'epsilon': 0.1\} \\
-    \textbf{FGSM Test Accuracy} & 0.4988 \\
-    \hline
-    \end{tabular}
-    \caption{Model Training and Adversarial Attack Results for FGSM loss without defense using pretrained and augmentation}
-\end{table}
+% \begin{table}[H]
+%     \centering
+%     \begin{tabular}{|c|c|}
+%     \hline
+%     \textbf{Metric} & \textbf{Value} \\
+%     \hline
+%     \textbf{Train Loss} & 0.2837 \\
+%     \textbf{Train Accuracy} & 0.9949 \\
+%     \hline
+%     \textbf{Validation Loss} & 0.4018 \\
+%     \textbf{Validation Accuracy} & 0.8705 \\
+%     \hline
+%     \textbf{Training Time} & 8m 53s \\
+%     \hline
+%     \textbf{Best Validation Accuracy} & 0.880826 \\
+%     \hline
+%     \textbf{Test Accuracy} & 88\% \\
+%     \hline
+%     \multicolumn{2}{|c|}{\textbf{Adversarial Attacks}} \\
+%     \hline
+%     \textbf{FGSM Args} & \{'alpha': 0.5, 'epsilon': 0.1\} \\
+%     \textbf{FGSM Test Accuracy} & 0.4988 \\
+%     \hline
+%     \end{tabular}
+%     \caption{Model Training and Adversarial Attack Results for FGSM loss without defense using pretrained and augmentation}
+% \end{table}
 
-\begin{table}[H]
-    \centering
-    \begin{tabular}{|c|c|}
-    \hline
-    \textbf{Metric} & \textbf{Value} \\
-    \hline
-    \textbf{Train Loss} & 0.2839 \\
-    \textbf{Train Accuracy} & 0.9949 \\
-    \hline
-    \textbf{Validation Loss} & 0.3586 \\
-    \textbf{Validation Accuracy} & 0.8810 \\
-    \hline
-    \textbf{Training Time} & 8m 51s \\
-    \hline
-    \textbf{Best Validation Accuracy} & 0.885858 \\
-    \hline
-    \textbf{Test Accuracy} & 87\% \\
-    \hline
-    \multicolumn{2}{|c|}{\textbf{Adversarial Attacks}} \\
-    \hline
-    \textbf{FGSM Args} & \{'alpha': 0.5, 'epsilon': 0.1\} \\
-    \textbf{FGSM Test Accuracy} & 0.5624 \\
-    \hline
-    \textbf{PGD Args} & \{'alpha': 2, 'epsilon': 0.01, 'num\_iter': 10\} \\
-    \textbf{PGD Test Accuracy} & 0.6224 \\
-    \hline
-    \end{tabular}
-    \caption{Model Training and Adversarial Attack Results for FGSM loss with defense, pretrained and augmentation}
-\end{table}
+% \begin{table}[H]
+%     \centering
+%     \begin{tabular}{|c|c|}
+%     \hline
+%     \textbf{Metric} & \textbf{Value} \\
+%     \hline
+%     \textbf{Train Loss} & 0.2839 \\
+%     \textbf{Train Accuracy} & 0.9949 \\
+%     \hline
+%     \textbf{Validation Loss} & 0.3586 \\
+%     \textbf{Validation Accuracy} & 0.8810 \\
+%     \hline
+%     \textbf{Training Time} & 8m 51s \\
+%     \hline
+%     \textbf{Best Validation Accuracy} & 0.885858 \\
+%     \hline
+%     \textbf{Test Accuracy} & 87\% \\
+%     \hline
+%     \multicolumn{2}{|c|}{\textbf{Adversarial Attacks}} \\
+%     \hline
+%     \textbf{FGSM Args} & \{'alpha': 0.5, 'epsilon': 0.1\} \\
+%     \textbf{FGSM Test Accuracy} & 0.5624 \\
+%     \hline
+%     \textbf{PGD Args} & \{'alpha': 2, 'epsilon': 0.01, 'num\_iter': 10\} \\
+%     \textbf{PGD Test Accuracy} & 0.6224 \\
+%     \hline
+%     \end{tabular}
+%     \caption{Model Training and Adversarial Attack Results for FGSM loss with defense, pretrained and augmentation}
+% \end{table}
 
 Without defense the model focuses solely on minimizing the loss on clean data, leading to high accuracy on natural,
 unperturbed inputs. However, it remains highly vulnerable to adversarial attacks, as it lacks mechanisms to handle small,
